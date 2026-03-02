@@ -1,1 +1,22 @@
+# 1. Dependency Folders (The biggest space eaters)
+**/node_modules/
+**/dist/
+**/build/
 
+# 2. Local Environment & Secrets (Crucial for security!)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# 3. TypeScript & Build Cache
+**/.tsbuildinfo
+**/.eslintcache
+**/.vite/
+
+# 4. OS Specific Files
+.DS_Store
+Thumbs.db
+
+# 5. Logs
+**/npm-debug.log*
+**/yarn-error.log*
