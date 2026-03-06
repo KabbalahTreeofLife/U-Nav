@@ -1,16 +1,18 @@
 # U-Nav
 
----
+## Introduction
 
-## Current status
+U-Nav (University Navigate) is a website and mobile application that ...
 
-Languages
+## Features
 
-1. ReactJS via Vite in Webdev directory (Frontend)
-2. ExpressJS in Backend directory (Backend)
-3. PostgresSQL in Backend directory (Database)
-4. Typescript
+> Interactive 3D Map of the University
+> Heat Map that discovers the traffic in certain areas of the campus
+> (Add Here)
 
-## Issues/TODOs
+## Languages & Frameworks
 
-List here:
+> Typescript
+> ReactJS with Vite
+> ExpressJS
+> PostgresSQL
