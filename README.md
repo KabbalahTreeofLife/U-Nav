@@ -12,7 +12,7 @@ _Campus navigation, reimagined._
 
 ## 📖 Introduction
 
-**U-Nav** (University Navigate) is a website and mobile application that ...
+**U-Nav** (University Navigate) is a website and mobile application that...
 
 ---
 
