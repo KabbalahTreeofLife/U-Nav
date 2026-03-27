@@ -17,46 +17,46 @@ export abstract class BaseValidator {
         this.errors = new Map();
     }
 
-    protected addRule(fieldName: string, rule: ValidationRule): this {
+    public addRule(fieldName: string, rule: ValidationRule): this {
         const existingRules = this.rules.get(fieldName) || [];
         this.rules.set(fieldName, [...existingRules, rule]);
         return this;
     }
 
-    protected addRequired(fieldName: string, label: string): this {
+    public addRequired(fieldName: string, label: string): this {
         return this.addRule(fieldName, {
             test: (value) => value.trim().length > 0,
             message: `${label} is required`,
         });
     }
 
-    protected addMinLength(fieldName: string, label: string, minLength: number): this {
+    public addMinLength(fieldName: string, label: string, minLength: number): this {
         return this.addRule(fieldName, {
             test: (value) => value.length >= minLength,
             message: `${label} must be at least ${minLength} characters`,
         });
     }
 
-    protected addMaxLength(fieldName: string, label: string, maxLength: number): this {
+    public addMaxLength(fieldName: string, label: string, maxLength: number): this {
         return this.addRule(fieldName, {
             test: (value) => value.length <= maxLength,
             message: `${label} must be no more than ${maxLength} characters`,
         });
     }
 
-    protected addPattern(fieldName: string, label: string, pattern: RegExp, message: string): this {
+    public addPattern(fieldName: string, label: string, pattern: RegExp, message: string): this {
         return this.addRule(fieldName, {
             test: (value) => pattern.test(value),
             message: message || `${label} format is invalid`,
         });
     }
 
-    protected addEmail(fieldName: string, label: string): this {
+    public addEmail(fieldName: string, label: string): this {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return this.addPattern(fieldName, label, emailPattern, `${label} must be a valid email address`);
     }
 
-    protected addPasswordMatch(passwordField: string, confirmField: string): this {
+    public addPasswordMatch(passwordField: string, confirmField: string): this {
         return this.addRule(confirmField, {
             test: (_, formData = {}) => formData[passwordField] === formData[confirmField],
             message: 'Passwords do not match',

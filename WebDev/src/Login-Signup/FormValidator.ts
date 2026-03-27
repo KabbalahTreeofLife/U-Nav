@@ -1,4 +1,5 @@
-import { BaseValidator, ValidationRule } from './validation';
+import { BaseValidator } from './validation';
+import type { ValidationRule } from './validation';
 
 export class FormValidator extends BaseValidator {
     public build(): ValidationRule[] {
