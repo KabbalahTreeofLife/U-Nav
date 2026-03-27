@@ -1,113 +1,162 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { FormValidator } from './FormValidator';
 
-interface UseFormOptions<T> {
-  initialValues: T;
-  validator: FormValidator;
-  onSubmit: (values: T) => void | Promise<void>;
+interface UseFormOptions<T extends Record<string, string>> {
+    initialValues: T;
+    validator: FormValidator;
+    onSubmit: (values: T) => Promise<void>;
 }
 
-interface UseFormReturn<T> {
-  values: T;
-  errors: Record<string, string>;
-  touched: Set<string>;
-  isSubmitting: boolean;
-  isValid: boolean;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handleBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
-  setValue: (field: keyof T, value: string) => void;
-  reset: () => void;
+interface UseFormReturn<T extends Record<string, string>> {
+    values: T;
+    errors: Record<string, string>;
+    touched: Set<string>;
+    isSubmitting: boolean;
+    isValid: boolean;
+    handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    handleBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => void;
+    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    setValue: (field: keyof T, value: string) => void;
+    reset: () => void;
+}
+
+class FormStateManager<T extends Record<string, string>> {
+    private values: T;
+    private errors: Record<string, string>;
+    private touched: Set<string>;
+    private validator: FormValidator;
+
+    constructor(initialValues: T, validator: FormValidator) {
+        this.values = initialValues;
+        this.errors = {};
+        this.touched = new Set();
+        this.validator = validator;
+    }
+
+    getValues(): T {
+        return this.values;
+    }
+
+    setValues(newValues: T): void {
+        this.values = newValues;
+    }
+
+    getErrors(): Record<string, string> {
+        return this.errors;
+    }
+
+    setErrors(errors: Record<string, string>): void {
+        this.errors = errors;
+    }
+
+    getTouched(): Set<string> {
+        return this.touched;
+    }
+
+    addTouched(field: string): void {
+        this.touched.add(field);
+    }
+
+    setAllTouched(): void {
+        this.touched = new Set(Object.keys(this.values));
+    }
+
+    getValidator(): FormValidator {
+        return this.validator;
+    }
+
+    validate(): { isValid: boolean; errors: Record<string, string> } {
+        this.validator.clearErrors();
+        return this.validator.validate(this.values as Record<string, string>);
+    }
+
+    reset(initialValues: T): void {
+        this.values = initialValues;
+        this.errors = {};
+        this.touched = new Set();
+    }
 }
 
 export function useForm<T extends Record<string, string>>({
-  initialValues,
-  validator,
-  onSubmit,
+    initialValues,
+    validator,
+    onSubmit,
 }: UseFormOptions<T>): UseFormReturn<T> {
-  const [values, setValues] = useState<T>(initialValues);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Set<string>>(new Set());
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [manager] = useState(() => new FormStateManager(initialValues, validator));
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value } = e.target;
-      setValues((prev) => ({ ...prev, [name]: value }));
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const { name, value } = e.target;
+            const newValues = { ...manager.getValues(), [name]: value };
+            manager.setValues(newValues);
 
-      if (touched.has(name)) {
-        validator.clearErrors();
-        const result = validator.validate({ ...values, [name]: value } as Record<string, string>);
-        setErrors(result.errors);
-      }
-    },
-    [touched, validator, values]
-  );
+            if (manager.getTouched().has(name)) {
+                const result = manager.validate();
+                manager.setErrors(result.errors);
+            }
+        },
+        [manager]
+    );
 
-  const handleBlur = useCallback(
-    (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name } = e.target;
-      setTouched((prev) => new Set(prev).add(name));
+    const handleBlur = useCallback(
+        (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const { name } = e.target;
+            manager.addTouched(name);
+            const result = manager.validate();
+            manager.setErrors(result.errors);
+        },
+        [manager]
+    );
 
-      validator.clearErrors();
-      const result = validator.validate(values as Record<string, string>);
-      setErrors(result.errors);
-    },
-    [validator, values]
-  );
+    const handleSubmit = useCallback(
+        async (e: React.FormEvent) => {
+            e.preventDefault();
+            manager.setAllTouched();
+            const result = manager.validate();
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
+            if (!result.isValid) {
+                manager.setErrors(result.errors);
+                return;
+            }
 
-      const allTouched = new Set(Object.keys(values));
-      setTouched(allTouched);
+            setIsSubmitting(true);
+            try {
+                await onSubmit(manager.getValues());
+            } finally {
+                setIsSubmitting(false);
+            }
+        },
+        [manager, onSubmit]
+    );
 
-      validator.clearErrors();
-      const result = validator.validate(values as Record<string, string>);
+    const setValue = useCallback(
+        (field: keyof T, value: string) => {
+            const newValues = { ...manager.getValues(), [field]: value };
+            manager.setValues(newValues);
+        },
+        [manager]
+    );
 
-      if (!result.isValid) {
-        setErrors(result.errors);
-        return;
-      }
+    const reset = useCallback(() => {
+        manager.reset(initialValues);
+    }, [manager, initialValues]);
 
-      setIsSubmitting(true);
-      try {
-        await onSubmit(values);
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [validator, onSubmit, values]
-  );
+    const isValid = (() => {
+        const result = manager.validate();
+        return result.isValid;
+    })();
 
-  const setValue = useCallback((field: keyof T, value: string) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const reset = useCallback(() => {
-    setValues(initialValues);
-    setErrors({});
-    setTouched(new Set());
-    setIsSubmitting(false);
-  }, [initialValues]);
-
-  const isValid = useMemo(() => {
-    validator.clearErrors();
-    const result = validator.validate(values as Record<string, string>);
-    return result.isValid;
-  }, [validator, values]);
-
-  return {
-    values,
-    errors,
-    touched,
-    isSubmitting,
-    isValid,
-    handleChange,
-    handleBlur,
-    handleSubmit,
-    setValue,
-    reset,
-  };
+    return {
+        get values() { return manager.getValues(); },
+        get errors() { return manager.getErrors(); },
+        get touched() { return manager.getTouched(); },
+        isSubmitting,
+        isValid,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        setValue,
+        reset,
+    };
 }
