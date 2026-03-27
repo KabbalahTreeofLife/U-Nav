@@ -1,16 +1,19 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { InputField, Button, FormDivider } from '../common';
+import { InputField, Button } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
+import { PasswordRequirements } from './PasswordRequirements';
 import { useForm } from './useForm';
 import { createSignupValidator } from './FormValidator';
 import type { University } from '../common/types';
-import '../css/auth.css';
+import '../css/Login-Signup/auth.css';
 
 const UNIVERSITIES: University[] = [
-  { id: 'uni-a', name: 'University of Science' },
-  { id: 'uni-b', name: 'Tech Institute' },
-  { id: 'uni-c', name: 'State College' },
+  { id: 'cpu', name: 'Central Philippine University' },
+  { id: 'wvsu', name: 'West Visayas State University' },
+  { id: 'upv', name: 'University of the Philippines - Visayas' },
+  { id: 'wit', name: 'Western Institute of Technology'},
+  { id: 'usa', name: 'University of San Agustin'}
 ];
 
 interface SignupFormData {
@@ -112,14 +115,7 @@ export const SignupView: React.FC = () => {
             disabled={isSubmitting}
           />
 
-          <FormDivider text="password requirements" />
-
-          <div className="password-requirements">
-            <p className="requirement">At least 8 characters</p>
-            <p className="requirement">One uppercase letter</p>
-            <p className="requirement">One lowercase letter</p>
-            <p className="requirement">One number</p>
-          </div>
+          <PasswordRequirements password={values.password} />
 
           <div className="form-actions">
             <Button type="submit" disabled={isSubmitting} fullWidth>

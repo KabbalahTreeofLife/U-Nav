@@ -5,12 +5,14 @@ import { UniversityDropdown } from './UniversityDropdown';
 import { useForm } from './useForm';
 import { createLoginValidator } from './FormValidator';
 import type { University } from '../common/types';
-import '../css/auth.css';
+import '../css/Login-Signup/auth.css';
 
 const UNIVERSITIES: University[] = [
-  { id: 'uni-a', name: 'University of Science' },
-  { id: 'uni-b', name: 'Tech Institute' },
-  { id: 'uni-c', name: 'State College' },
+  { id: 'cpu', name: 'Central Philippine University' },
+  { id: 'wvsu', name: 'West Visayas State University' },
+  { id: 'upv', name: 'University of the Philippines - Visayas' },
+  { id: 'wit', name: 'Western Institute of Technology'},
+  { id: 'usa', name: 'University of San Agustin'}
 ];
 
 interface LoginFormData {
