@@ -1,28 +1,29 @@
 import React from 'react';
-import type { University } from '../common/types';
 
-interface UniversityDropdownProps {
+interface InputFieldProps {
+  type: 'text' | 'password' | 'email';
   name: string;
   label: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
-  universities: University[];
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
+  autoComplete?: string;
   error?: string;
   disabled?: boolean;
 }
 
-export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
+export const InputField: React.FC<InputFieldProps> = ({
+  type,
   name,
   label,
   value,
   onChange,
   onBlur,
-  universities,
-  placeholder = 'Select your University',
+  placeholder,
   required = false,
+  autoComplete,
   error,
   disabled = false,
 }) => {
@@ -34,23 +35,19 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
         {label}
         {required && <span className="required-indicator">*</span>}
       </label>
-      <select
+      <input
+        type={type}
         id={name}
         name={name}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
+        placeholder={placeholder}
         required={required}
+        autoComplete={autoComplete}
         disabled={disabled}
-        className={`input-field select-field ${hasError ? 'input-error' : ''}`}
-      >
-        <option value="">{placeholder}</option>
-        {universities.map((uni) => (
-          <option key={uni.id} value={uni.id}>
-            {uni.name}
-          </option>
-        ))}
-      </select>
+        className={`input-field ${hasError ? 'input-error' : ''}`}
+      />
       {hasError && <span className="error-message">{error}</span>}
     </div>
   );

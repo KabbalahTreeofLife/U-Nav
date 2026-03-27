@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { InputField, Button, FormDivider } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
 import { useForm } from './useForm';
-import { createLoginValidator } from './FormValidator';
+import { createSignupValidator } from './FormValidator';
 import type { University } from '../common/types';
 import '../css/auth.css';
 
@@ -13,26 +13,28 @@ const UNIVERSITIES: University[] = [
   { id: 'uni-c', name: 'State College' },
 ];
 
-interface LoginFormData {
+interface SignupFormData {
   university: string;
   username: string;
   password: string;
+  confirmPassword: string;
   [key: string]: string;
 }
 
-const initialValues: LoginFormData = {
+const initialValues: SignupFormData = {
   university: '',
   username: '',
   password: '',
+  confirmPassword: '',
 };
 
-export const LoginView: React.FC = () => {
-  const handleLogin = async (values: LoginFormData) => {
-    console.log('Logging in user:', values);
-  };
+export const SignupView: React.FC = () => {
+  const navigate = useNavigate();
 
-  const handleGuestLogin = () => {
-    alert('Guest mode is not yet implemented.');
+  const handleSignup = async (values: SignupFormData) => {
+    const { university, username, password } = values;
+    console.log('Signing up user:', { university, username, password });
+    navigate('/login');
   };
 
   const {
@@ -42,18 +44,18 @@ export const LoginView: React.FC = () => {
     handleChange,
     handleBlur,
     handleSubmit,
-  } = useForm<LoginFormData>({
+  } = useForm<SignupFormData>({
     initialValues,
-    validator: createLoginValidator(),
-    onSubmit: handleLogin,
+    validator: createSignupValidator(),
+    onSubmit: handleSignup,
   });
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-title">U-Nav</h1>
-          <p className="auth-subtitle">Sign in to your account</p>
+          <h1 className="auth-title">Create Account</h1>
+          <p className="auth-subtitle">Join U-Nav today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -75,7 +77,7 @@ export const LoginView: React.FC = () => {
             value={values.username}
             onChange={handleChange}
             onBlur={handleBlur}
-            placeholder="Student ID or Email"
+            placeholder="Choose a username"
             required
             autoComplete="username"
             error={errors.username}
@@ -89,37 +91,48 @@ export const LoginView: React.FC = () => {
             value={values.password}
             onChange={handleChange}
             onBlur={handleBlur}
-            placeholder="Enter your password"
+            placeholder="Create a password"
             required
-            autoComplete="current-password"
+            autoComplete="new-password"
             error={errors.password}
             disabled={isSubmitting}
           />
 
-          <div className="form-actions">
-            <Button type="submit" disabled={isSubmitting} fullWidth>
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
-            </Button>
+          <InputField
+            type="password"
+            name="confirmPassword"
+            label="Confirm Password"
+            value={values.confirmPassword}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Confirm your password"
+            required
+            autoComplete="new-password"
+            error={errors.confirmPassword}
+            disabled={isSubmitting}
+          />
+
+          <FormDivider text="password requirements" />
+
+          <div className="password-requirements">
+            <p className="requirement">At least 8 characters</p>
+            <p className="requirement">One uppercase letter</p>
+            <p className="requirement">One lowercase letter</p>
+            <p className="requirement">One number</p>
           </div>
 
-          <FormDivider />
-
-          <Button
-            type="button"
-            onClick={handleGuestLogin}
-            variant="outline"
-            fullWidth
-            disabled={isSubmitting}
-          >
-            Continue as Guest
-          </Button>
+          <div className="form-actions">
+            <Button type="submit" disabled={isSubmitting} fullWidth>
+              {isSubmitting ? 'Creating account...' : 'Create Account'}
+            </Button>
+          </div>
         </form>
 
         <div className="auth-footer">
           <p>
-            Don't have an account?{' '}
-            <Link to="/signup" className="auth-link">
-              Sign Up
+            Already have an account?{' '}
+            <Link to="/login" className="auth-link">
+              Sign In
             </Link>
           </p>
         </div>
@@ -128,4 +141,4 @@ export const LoginView: React.FC = () => {
   );
 };
 
-export default LoginView;
+export default SignupView;
