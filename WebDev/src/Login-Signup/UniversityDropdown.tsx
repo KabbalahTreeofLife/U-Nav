@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import type { University } from '../common/types';
+import type { University } from '../api/types';
 
 interface UniversityDropdownProps {
   name: string;
@@ -34,7 +34,7 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
 
   const hasError = Boolean(error);
 
-  const selectedUniversity = universities.find((uni) => uni.id === value);
+  const selectedUniversity = universities.find((uni) => String(uni.id) === value);
 
   const filteredUniversities = universities.filter((uni) =>
     uni.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -44,7 +44,7 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
     const syntheticEvent = {
       target: {
         name,
-        value: uni.id,
+        value: String(uni.id),
       },
     } as React.ChangeEvent<HTMLSelectElement>;
     onChange(syntheticEvent);
@@ -169,10 +169,10 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
                 filteredUniversities.map((uni, index) => (
                   <div
                     key={uni.id}
-                    className={`dropdown-option ${index === highlightedIndex ? 'dropdown-option-highlighted' : ''} ${uni.id === value ? 'dropdown-option-selected' : ''}`}
+                    className={`dropdown-option ${index === highlightedIndex ? 'dropdown-option-highlighted' : ''} ${String(uni.id) === value ? 'dropdown-option-selected' : ''}`}
                     onClick={() => handleSelect(uni)}
                     role="option"
-                    aria-selected={uni.id === value}
+                    aria-selected={String(uni.id) === value}
                   >
                     {uni.name}
                   </div>

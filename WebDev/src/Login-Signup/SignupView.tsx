@@ -1,20 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { InputField, Button } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
 import { PasswordRequirements } from './PasswordRequirements';
 import { useForm } from './useForm';
 import { createSignupValidator } from './FormValidator';
-import type { University } from '../common/types';
+import { authApi } from '../api';
+import type { University } from '../api/types';
 import '../css/Login-Signup/auth.css';
-
-const UNIVERSITIES: University[] = [
-  { id: 'cpu', name: 'Central Philippine University' },
-  { id: 'wvsu', name: 'West Visayas State University' },
-  { id: 'upv', name: 'University of the Philippines - Visayas' },
-  { id: 'wit', name: 'Western Institute of Technology'},
-  { id: 'usa', name: 'University of San Agustin'}
-];
 
 interface SignupFormData {
   university: string;
@@ -33,11 +26,37 @@ const initialValues: SignupFormData = {
 
 export const SignupView: React.FC = () => {
   const navigate = useNavigate();
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [apiError, setApiError] = useState<string>('');
+  const [isLoadingUniversities, setIsLoadingUniversities] = useState(true);
+
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      const result = await authApi.getUniversities();
+      if (result.success) {
+        setUniversities(result.data.universities);
+      }
+      setIsLoadingUniversities(false);
+    };
+    fetchUniversities();
+  }, []);
 
   const handleSignup = async (values: SignupFormData) => {
-    const { university, username, password } = values;
-    console.log('Signing up user:', { university, username, password });
-    navigate('/login');
+    setApiError('');
+
+    const result = await authApi.signup({
+      university_id: parseInt(values.university),
+      username: values.username,
+      password: values.password,
+    });
+
+    if (result.success) {
+      console.log('Signup successful:', result.data);
+      alert('Account created successfully! Please sign in.');
+      navigate('/login');
+    } else {
+      setApiError(result.error);
+    }
   };
 
   const {
@@ -68,9 +87,11 @@ export const SignupView: React.FC = () => {
             value={values.university}
             onChange={handleChange}
             onBlur={handleBlur}
-            universities={UNIVERSITIES}
+            universities={universities}
+            placeholder={isLoadingUniversities ? 'Loading...' : 'Select your University'}
             required
             error={errors.university}
+            disabled={isSubmitting || isLoadingUniversities}
           />
 
           <InputField
@@ -117,8 +138,12 @@ export const SignupView: React.FC = () => {
 
           <PasswordRequirements password={values.password} />
 
+          {apiError && (
+            <div className="auth-error">{apiError}</div>
+          )}
+
           <div className="form-actions">
-            <Button type="submit" disabled={isSubmitting} fullWidth>
+            <Button type="submit" disabled={isSubmitting || isLoadingUniversities} fullWidth>
               {isSubmitting ? 'Creating account...' : 'Create Account'}
             </Button>
           </div>

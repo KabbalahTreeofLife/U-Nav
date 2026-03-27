@@ -1,19 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { InputField, Button, FormDivider } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
 import { useForm } from './useForm';
 import { createLoginValidator } from './FormValidator';
-import type { University } from '../common/types';
+import { authApi } from '../api';
+import type { University } from '../api/types';
 import '../css/Login-Signup/auth.css';
-
-const UNIVERSITIES: University[] = [
-  { id: 'cpu', name: 'Central Philippine University' },
-  { id: 'wvsu', name: 'West Visayas State University' },
-  { id: 'upv', name: 'University of the Philippines - Visayas' },
-  { id: 'wit', name: 'Western Institute of Technology'},
-  { id: 'usa', name: 'University of San Agustin'}
-];
 
 interface LoginFormData {
   university: string;
@@ -29,8 +22,35 @@ const initialValues: LoginFormData = {
 };
 
 export const LoginView: React.FC = () => {
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [apiError, setApiError] = useState<string>('');
+  const [isLoadingUniversities, setIsLoadingUniversities] = useState(true);
+
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      const result = await authApi.getUniversities();
+      if (result.success) {
+        setUniversities(result.data.universities);
+      }
+      setIsLoadingUniversities(false);
+    };
+    fetchUniversities();
+  }, []);
+
   const handleLogin = async (values: LoginFormData) => {
-    console.log('Logging in user:', values);
+    setApiError('');
+    
+    const result = await authApi.login({
+      username: values.username,
+      password: values.password,
+    });
+
+    if (result.success) {
+      console.log('Login successful:', result.data);
+      alert('Login successful! Welcome, ' + result.data.user?.username);
+    } else {
+      setApiError(result.error);
+    }
   };
 
   const handleGuestLogin = () => {
@@ -65,9 +85,11 @@ export const LoginView: React.FC = () => {
             value={values.university}
             onChange={handleChange}
             onBlur={handleBlur}
-            universities={UNIVERSITIES}
+            universities={universities}
+            placeholder={isLoadingUniversities ? 'Loading...' : 'Select your University'}
             required
             error={errors.university}
+            disabled={isSubmitting || isLoadingUniversities}
           />
 
           <InputField
@@ -77,7 +99,7 @@ export const LoginView: React.FC = () => {
             value={values.username}
             onChange={handleChange}
             onBlur={handleBlur}
-            placeholder="Student ID or Email"
+            placeholder="Enter your username"
             required
             autoComplete="username"
             error={errors.username}
@@ -98,8 +120,12 @@ export const LoginView: React.FC = () => {
             disabled={isSubmitting}
           />
 
+          {apiError && (
+            <div className="auth-error">{apiError}</div>
+          )}
+
           <div className="form-actions">
-            <Button type="submit" disabled={isSubmitting} fullWidth>
+            <Button type="submit" disabled={isSubmitting || isLoadingUniversities} fullWidth>
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </Button>
           </div>
