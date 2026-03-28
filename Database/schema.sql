@@ -34,10 +34,10 @@ CREATE INDEX idx_users_username ON users(username);
 -- ============================================
 INSERT INTO universities (name) VALUES
     ('Central Philippine University'),
-    ('West Visayas State University'),
+    ('University of San Agustin'),
     ('University of the Philippines - Visayas'),
-    ('Western Institute of Technology'),
-    ('University of San Agustin');
+    ('West Visayas State University'),
+    ('Western Institute of Technology');
 
 -- ============================================
 -- Verification Queries
