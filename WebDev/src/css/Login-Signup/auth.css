@@ -59,6 +59,17 @@
   border: 1px solid var(--color-error);
 }
 
+/* Auth Success Message */
+.auth-success {
+  background-color: #ecfdf5;
+  color: var(--color-success);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  text-align: center;
+  border: 1px solid var(--color-success);
+}
+
 /* Password Requirements */
 .password-requirements {
   background-color: var(--color-bg);

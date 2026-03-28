@@ -34,26 +34,24 @@ export function useForm<T extends Record<string, string>>({
         (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
             const { name, value } = e.target;
             setValues((prev) => ({ ...prev, [name]: value }));
-
-            if (touched.has(name)) {
-                validator.clearErrors();
-                const result = validator.validate({ ...values, [name]: value } as Record<string, string>);
-                setErrors(result.errors);
+            
+            if (errors[name]) {
+                setErrors((prev) => {
+                    const newErrors = { ...prev };
+                    delete newErrors[name];
+                    return newErrors;
+                });
             }
         },
-        [touched, validator, values]
+        [errors]
     );
 
     const handleBlur = useCallback(
         (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
             const { name } = e.target;
             setTouched((prev) => new Set(prev).add(name));
-
-            validator.clearErrors();
-            const result = validator.validate(values as Record<string, string>);
-            setErrors(result.errors);
         },
-        [validator, values]
+        []
     );
 
     const handleSubmit = useCallback(

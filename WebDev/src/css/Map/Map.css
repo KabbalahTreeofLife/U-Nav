@@ -1,0 +1,51 @@
+.map-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    padding-top: 70px;
+}
+
+.map-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    padding-bottom: 5rem;
+}
+
+.map-placeholder {
+    text-align: center;
+    padding: 3rem 2rem;
+    background-color: var(--color-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    max-width: 400px;
+}
+
+.map-icon {
+    width: 80px;
+    height: 80px;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+}
+
+.map-placeholder h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.5rem;
+}
+
+.map-placeholder p {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.map-note {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}

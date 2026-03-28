@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputField, Button } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
@@ -27,8 +27,15 @@ export const SignupView: React.FC = () => {
     const navigate = useNavigate();
     const { signup, isLoading: authLoading, error: authError, clearError } = useAuth();
     const { universities, isLoading: isLoadingUniversities } = useUniversities();
+    const [successMessage, setSuccessMessage] = useState<string>('');
+
+    useEffect(() => {
+        clearError();
+    }, [clearError]);
 
     const handleSignup = async (values: SignupFormData) => {
+        setSuccessMessage('');
+        
         const success = await signup(
             parseInt(values.university),
             values.username,
@@ -36,10 +43,10 @@ export const SignupView: React.FC = () => {
         );
 
         if (success) {
-            alert('Account created successfully! Please sign in.');
-            navigate('/login');
-        } else if (!authError) {
-            clearError();
+            setSuccessMessage('Account created successfully! Please sign in.');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         }
     };
 
@@ -123,6 +130,10 @@ export const SignupView: React.FC = () => {
                     />
 
                     <PasswordRequirements password={values.password} />
+
+                    {successMessage && (
+                        <div className="auth-success">{successMessage}</div>
+                    )}
 
                     {authError && (
                         <div className="auth-error">{authError}</div>

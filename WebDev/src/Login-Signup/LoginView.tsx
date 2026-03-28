@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { InputField, Button, FormDivider } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
@@ -25,11 +25,12 @@ export const LoginView: React.FC = () => {
     const { isAuthenticated, login, isLoading: authLoading, error: authError, clearError } = useAuth();
     const { universities, isLoading: isLoadingUniversities } = useUniversities();
 
+    useEffect(() => {
+        clearError();
+    }, [clearError]);
+
     const handleLogin = async (values: LoginFormData) => {
-        const success = await login(values.username, values.password);
-        if (!success && !authError) {
-            clearError();
-        }
+        await login(values.username, values.password);
     };
 
     const handleGuestLogin = () => {
