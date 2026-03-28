@@ -193,9 +193,3 @@ Check your `.env` file:
 ### Frontend shows "Loading..."
 
 Make sure the backend is running on port 3000
-
----
-
-This project was created for Introduction to Engineering Design (CPU).
-
-**Group 3:** Daniel Koen Parcon, Marc Francis Billiones, Marco Daniel Castillo, Xanth Reign Palmes, Seth Dofeliz
