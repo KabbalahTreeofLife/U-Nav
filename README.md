@@ -21,7 +21,6 @@ _Campus navigation, reimagined._
 - 🗺️ **Interactive 3D Map** — Full three-dimensional map of the university campus
 - 🔥 **Live Area Traffic System** — Real-time crowd tracking (heat map)
 - 🍽️ **Campus Dining Guide** — Discover food spots on campus
-- 👤 **User Authentication** — Login and signup system
 
 ---
 
