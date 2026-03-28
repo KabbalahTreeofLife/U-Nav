@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { InputField, Button, FormDivider } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
 import { useForm } from './useForm';
@@ -21,6 +21,7 @@ const initialValues: LoginFormData = {
 };
 
 export const LoginView: React.FC = () => {
+    const navigate = useNavigate();
     const { isAuthenticated, login, isLoading: authLoading, error: authError, clearError } = useAuth();
     const { universities, isLoading: isLoadingUniversities } = useUniversities();
 
@@ -130,9 +131,13 @@ export const LoginView: React.FC = () => {
                 <div className="auth-footer">
                     <p>
                         Don't have an account?{' '}
-                        <Link to="/signup" className="auth-link">
+                        <button
+                            type="button"
+                            className="auth-link-button"
+                            onClick={() => navigate('/signup')}
+                        >
                             Sign Up
-                        </Link>
+                        </button>
                     </p>
                 </div>
             </div>

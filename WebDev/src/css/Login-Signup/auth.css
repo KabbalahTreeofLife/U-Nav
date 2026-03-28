@@ -133,6 +133,23 @@
   text-decoration: underline;
 }
 
+.auth-link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: inherit;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  padding: 0;
+}
+
+.auth-link-button:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
 /* Custom Dropdown */
 .dropdown-container {
   position: relative;

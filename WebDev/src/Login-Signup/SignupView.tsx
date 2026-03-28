@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { InputField, Button } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
 import { PasswordRequirements } from './PasswordRequirements';
@@ -138,9 +138,13 @@ export const SignupView: React.FC = () => {
                 <div className="auth-footer">
                     <p>
                         Already have an account?{' '}
-                        <Link to="/login" className="auth-link">
+                        <button
+                            type="button"
+                            className="auth-link-button"
+                            onClick={() => navigate('/login')}
+                        >
                             Sign In
-                        </Link>
+                        </button>
                     </p>
                 </div>
             </div>
