@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
@@ -60,11 +59,10 @@ router.post('/signup', async (req: Request, res: Response) => {
         }
 
         const password_hash = await bcrypt.hash(password, 10);
-        const user_id = uuidv4();
 
         const result = await query(
-            'INSERT INTO users (id, university_id, email, username, password_hash, student_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, username, university_id, student_id',
-            [user_id, university_id, email, username || null, password_hash, student_id || null]
+            'INSERT INTO users (university_id, email, username, password_hash, student_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, username, university_id, student_id',
+            [university_id, email, username || null, password_hash, student_id || null]
         );
 
         res.status(201).json({
