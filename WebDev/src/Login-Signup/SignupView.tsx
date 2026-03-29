@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InputField, Button } from '../common';
 import { UniversityDropdown } from './UniversityDropdown';
@@ -11,6 +11,7 @@ import '../css/Login-Signup/auth.css';
 interface SignupFormData {
     university: string;
     username: string;
+    email: string;
     password: string;
     confirmPassword: string;
     [key: string]: string;
@@ -19,6 +20,7 @@ interface SignupFormData {
 const initialValues: SignupFormData = {
     university: '',
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
 };
@@ -26,7 +28,7 @@ const initialValues: SignupFormData = {
 export const SignupView: React.FC = () => {
     const navigate = useNavigate();
     const { signup, isLoading: authLoading, error: authError, clearError } = useAuth();
-    const { universities, isLoading: isLoadingUniversities } = useUniversities();
+    const { universities, isLoading: isLoadingUniversities, getEmailDomainById } = useUniversities();
     const [successMessage, setSuccessMessage] = useState<string>('');
 
     useEffect(() => {
@@ -50,6 +52,10 @@ export const SignupView: React.FC = () => {
         }
     };
 
+    const validator = useMemo(() => {
+        return createSignupValidator(getEmailDomainById);
+    }, [getEmailDomainById]);
+
     const {
         values,
         errors,
@@ -59,7 +65,7 @@ export const SignupView: React.FC = () => {
         handleSubmit,
     } = useForm<SignupFormData>({
         initialValues,
-        validator: createSignupValidator(),
+        validator,
         onSubmit: handleSignup,
     });
 
@@ -98,6 +104,20 @@ export const SignupView: React.FC = () => {
                         required
                         autoComplete="username"
                         error={errors.username}
+                        disabled={isLoading}
+                    />
+
+                    <InputField
+                        type="email"
+                        name="email"
+                        label="University Email"
+                        value={values.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="e.g., john.doe@cpu.edu.ph"
+                        required
+                        autoComplete="email"
+                        error={errors.email}
                         disabled={isLoading}
                     />
 

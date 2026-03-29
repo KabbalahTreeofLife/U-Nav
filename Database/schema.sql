@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS universities CASCADE;
 CREATE TABLE universities (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
+    email_domain VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,12 +33,12 @@ CREATE INDEX idx_users_username ON users(username);
 -- ============================================
 -- Sample Data: Universities
 -- ============================================
-INSERT INTO universities (name) VALUES
-    ('Central Philippine University'),
-    ('University of San Agustin'),
-    ('University of the Philippines - Visayas'),
-    ('West Visayas State University'),
-    ('Western Institute of Technology');
+INSERT INTO universities (name, email_domain) VALUES
+    ('Central Philippine University', 'cpu.edu.ph'),
+    ('University of San Agustin', 'usa.edu.ph'),
+    ('University of the Philippines - Visayas', 'upv.edu.ph'),
+    ('West Visayas State University', 'wvsu.edu.ph'),
+    ('Western Institute of Technology', 'wit.edu.ph');
 
 -- ============================================
 -- Verification Queries

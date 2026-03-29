@@ -1,6 +1,7 @@
 export interface University {
     id: number;
     name: string;
+    email_domain: string;
 }
 
 export interface User {

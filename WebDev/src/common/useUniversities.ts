@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { authApi } from '../api';
 import type { University } from '../api/types';
 
@@ -6,12 +6,29 @@ interface UseUniversitiesReturn {
     universities: University[];
     isLoading: boolean;
     error: string | null;
+    getUniversityById: (id: number) => University | undefined;
+    getEmailDomainById: (id: number) => string | undefined;
 }
 
 export const useUniversities = (): UseUniversitiesReturn => {
     const [universities, setUniversities] = useState<University[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const universityMap = useMemo(() => {
+        const map = new Map<number, University>();
+        universities.forEach(uni => map.set(uni.id, uni));
+        return map;
+    }, [universities]);
+
+    const getUniversityById = (id: number): University | undefined => {
+        return universityMap.get(id);
+    };
+
+    const getEmailDomainById = (id: number): string | undefined => {
+        const uni = universityMap.get(id);
+        return uni?.email_domain;
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -35,5 +52,5 @@ export const useUniversities = (): UseUniversitiesReturn => {
         };
     }, []);
 
-    return { universities, isLoading, error };
+    return { universities, isLoading, error, getUniversityById, getEmailDomainById };
 };

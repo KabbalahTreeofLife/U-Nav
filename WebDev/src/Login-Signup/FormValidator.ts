@@ -49,11 +49,14 @@ export const createLoginValidator = (): FormValidator => {
     return validator;
 };
 
-export const createSignupValidator = (): FormValidator => {
+export const createSignupValidator = (getEmailDomain: (universityId: number) => string | undefined): FormValidator => {
     const validator = new FormValidator();
     validator.addRequired('university', 'University');
     validator.addRequired('username', 'Username');
     validator.addMinLength('username', 'Username', 3);
+    validator.addRequired('email', 'University Email');
+    validator.addEmail('email', 'University Email');
+    validator.addUniversityEmail('email', 'university', getEmailDomain);
     validator.addRequired('password', 'Password');
     validator.addMinLength('password', 'Password', 8);
     validator.addPattern(

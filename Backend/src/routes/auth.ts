@@ -81,7 +81,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
 router.get('/universities', async (_req: Request, res: Response) => {
     try {
-        const result = await query('SELECT id, name FROM universities ORDER BY name');
+        const result = await query('SELECT id, name, email_domain FROM universities ORDER BY name');
         res.json({ universities: result.rows });
     } catch (error) {
         console.error('Universities error:', error);

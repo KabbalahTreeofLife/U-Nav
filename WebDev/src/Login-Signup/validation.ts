@@ -63,6 +63,25 @@ export abstract class BaseValidator {
         });
     }
 
+    public addUniversityEmail(fieldName: string, universityField: string, getDomain: (universityId: number) => string | undefined): this {
+        return this.addRule(fieldName, {
+            test: (value: string, formData = {}) => {
+                const universityId = parseInt(formData[universityField], 10);
+                if (!universityId || !value) return false;
+                
+                const domain = getDomain(universityId);
+                if (!domain) return true;
+                
+                const emailPattern = /^[^\s@]+@(.+)$/;
+                const match = value.match(emailPattern);
+                if (!match) return false;
+                
+                return match[1].toLowerCase() === domain.toLowerCase();
+            },
+            message: 'Email must match your selected university domain',
+        });
+    }
+
     public validate(formData: Record<string, string>): ValidationResult {
         this.errors.clear();
 
