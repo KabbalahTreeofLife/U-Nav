@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const loginAsGuest = useCallback((universityId: number, universityName: string) => {
         setUser({
             id: 0,
+            email: 'guest@guest.local',
             username: 'Guest',
             university_id: universityId,
             university_name: universityName,
