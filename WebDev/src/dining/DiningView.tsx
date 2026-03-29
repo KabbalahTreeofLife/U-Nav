@@ -1,14 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { TopNav, BottomNav } from '../common';
-import { diningLocations, getDiningIcon, getTypeLabel } from './data';
+import { getDiningIcon, getTypeLabel, getDiningByUniversity } from './data';
 import type { DiningLocation } from './data';
+import { useAuth } from '../common/AuthContext';
 import '../css/Dining/Dining.css';
 
 type FilterType = 'all' | 'restaurant' | 'cafe' | 'mess' | 'snack';
 
 export const DiningView: React.FC = () => {
+    const { universityId } = useAuth();
     const [filter, setFilter] = useState<FilterType>('all');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const diningLocations = useMemo(() => {
+        return getDiningByUniversity(universityId || 1);
+    }, [universityId]);
 
     const filteredLocations = useMemo(() => {
         return diningLocations.filter((location) => {
@@ -19,7 +25,7 @@ export const DiningView: React.FC = () => {
                 location.cuisine.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
             return matchesFilter && matchesSearch;
         });
-    }, [filter, searchQuery]);
+    }, [filter, searchQuery, diningLocations]);
 
     const renderStars = (rating: number) => {
         const stars = [];

@@ -12,7 +12,8 @@ export interface DiningLocation {
     coordinates?: { x: number; y: number };
 }
 
-export const diningLocations: DiningLocation[] = [
+// University-specific dining locations
+const CPU_DINING: DiningLocation[] = [
     {
         id: 'cpu-mess',
         name: 'CPU Main Mess Hall',
@@ -108,8 +109,175 @@ export const diningLocations: DiningLocation[] = [
         cuisine: ['Bubble Tea', 'Snacks', 'Light Meals'],
         rating: 4.6,
         coordinates: { x: 3, y: 6 }
+     }
+];
+
+// ISATU (ID: 6) Dining Locations
+const ISATU_DINING: DiningLocation[] = [
+    {
+        id: 'isatu-cafeteria',
+        name: 'ISATU Main Cafeteria',
+        type: 'restaurant',
+        building: 'Admin Building',
+        floor: 1,
+        operatingHours: '7:00 AM - 8:00 PM',
+        priceRange: '$',
+        cuisine: ['Filipino', 'Asian', 'Snacks'],
+        rating: 4.1,
+        coordinates: { x: 0, y: 0 }
+    },
+    {
+        id: 'isatu-coffee',
+        name: 'ISATU Tech Cafe',
+        type: 'cafe',
+        building: 'Engineering Building',
+        floor: 1,
+        operatingHours: '6:30 AM - 9:00 PM',
+        priceRange: '$$',
+        cuisine: ['Coffee', 'Pastries', 'Light Meals'],
+        rating: 4.3,
+        coordinates: { x: 8, y: -3 }
+    },
+    {
+        id: 'isatu-snack',
+        name: 'Resource Center Snack Bar',
+        type: 'snack',
+        building: 'Resource Center',
+        floor: 1,
+        operatingHours: '8:00 AM - 6:00 PM',
+        priceRange: '$',
+        cuisine: ['Snacks', 'Beverages', 'Sandwiches'],
+        rating: 3.9,
+        coordinates: { x: -6, y: 5 }
     }
 ];
+
+// WVSU (ID: 2) Dining Locations
+const WVSU_DINING: DiningLocation[] = [
+    {
+        id: 'wvsu-mess',
+        name: 'WVSU Student Mess',
+        type: 'mess',
+        building: 'Main Campus Building',
+        floor: 1,
+        operatingHours: '6:00 AM - 8:00 PM',
+        priceRange: '$',
+        cuisine: ['Filipino', 'International'],
+        rating: 4.0,
+        coordinates: { x: 0, y: 0 }
+    },
+    {
+        id: 'wvsu-cafe',
+        name: 'Campus Coffee Lounge',
+        type: 'cafe',
+        building: 'Student Center',
+        floor: 2,
+        operatingHours: '7:00 AM - 8:00 PM',
+        priceRange: '$$',
+        cuisine: ['Coffee', 'Pastries', 'Smoothies'],
+        rating: 4.2,
+        coordinates: { x: 5, y: 3 }
+    }
+];
+
+// UPV (ID: 3) Dining Locations
+const UPV_DINING: DiningLocation[] = [
+    {
+        id: 'upv-cafeteria',
+        name: 'Diliman Hall Cafeteria',
+        type: 'restaurant',
+        building: 'Diliman Hall',
+        floor: 1,
+        operatingHours: '6:30 AM - 7:30 PM',
+        priceRange: '$',
+        cuisine: ['Filipino', 'Asian Fusion'],
+        rating: 4.2,
+        coordinates: { x: 0, y: 0 }
+    },
+    {
+        id: 'upv-coffee',
+        name: 'UP Coffee Station',
+        type: 'cafe',
+        building: 'University Center',
+        floor: 1,
+        operatingHours: '7:00 AM - 8:00 PM',
+        priceRange: '$$',
+        cuisine: ['Premium Coffee', 'Pastries', 'Desserts'],
+        rating: 4.4,
+        coordinates: { x: 8, y: 2 }
+    }
+];
+
+// WIT (ID: 4) Dining Locations
+const WIT_DINING: DiningLocation[] = [
+    {
+        id: 'wit-tech-cafe',
+        name: 'WIT Tech Cafeteria',
+        type: 'restaurant',
+        building: 'Technology Building',
+        floor: 1,
+        operatingHours: '7:00 AM - 7:00 PM',
+        priceRange: '$',
+        cuisine: ['Filipino', 'Fast Food', 'Healthy Options'],
+        rating: 4.0,
+        coordinates: { x: 0, y: 0 }
+    },
+    {
+        id: 'wit-snack-bar',
+        name: 'Innovation Hub Snack Bar',
+        type: 'snack',
+        building: 'Research Center',
+        floor: 1,
+        operatingHours: '24 Hours',
+        priceRange: '$',
+        cuisine: ['Snacks', 'Coffee', 'Energy Drinks'],
+        rating: 3.8,
+        coordinates: { x: 6, y: -4 }
+    }
+];
+
+// USA (ID: 5) Dining Locations
+const USA_DINING: DiningLocation[] = [
+    {
+        id: 'usa-agustin-hall',
+        name: 'San Agustin Hall Dining',
+        type: 'restaurant',
+        building: 'San Agustin Hall',
+        floor: 1,
+        operatingHours: '6:00 AM - 8:00 PM',
+        priceRange: '$',
+        cuisine: ['Filipino', 'Continental'],
+        rating: 4.1,
+        coordinates: { x: 0, y: 0 }
+    },
+    {
+        id: 'usa-cafe',
+        name: 'Agustin Cafe',
+        type: 'cafe',
+        building: 'Quadrangle',
+        floor: 1,
+        operatingHours: '7:00 AM - 9:00 PM',
+        priceRange: '$$',
+        cuisine: ['Specialty Coffee', 'Baked Goods', 'Light Meals'],
+        rating: 4.3,
+        coordinates: { x: 5, y: 5 }
+    }
+];
+
+// Map of university ID to dining locations
+export const getDiningByUniversity = (universityId: number): DiningLocation[] => {
+    const diningMap: { [key: number]: DiningLocation[] } = {
+        1: CPU_DINING,
+        2: WVSU_DINING,
+        3: UPV_DINING,
+        4: WIT_DINING,
+        5: USA_DINING,
+        6: ISATU_DINING,
+    };
+    return diningMap[universityId] || CPU_DINING; // Default to CPU if not found
+};
+
+export const diningLocations: DiningLocation[] = CPU_DINING;
 
 export const getDiningIcon = (type: DiningLocation['type']): string => {
     switch (type) {
