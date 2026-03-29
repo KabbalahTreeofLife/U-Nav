@@ -19,7 +19,7 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-    login: (username: string, password: string) => Promise<boolean>;
+    login: (username: string, password: string, universityId: number) => Promise<boolean>;
     signup: (universityId: number, username: string, password: string) => Promise<boolean>;
     loginAsGuest: (universityId: number, universityName: string) => void;
     logout: () => void;
@@ -39,11 +39,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const login = useCallback(async (username: string, password: string): Promise<boolean> => {
+    const login = useCallback(async (username: string, password: string, universityId: number): Promise<boolean> => {
         setIsLoading(true);
         setError(null);
 
-        const result = await authApi.login({ username, password });
+        const result = await authApi.login({ username, password, university_id: universityId });
 
         if (result.success) {
             setUser(result.data.user || null);

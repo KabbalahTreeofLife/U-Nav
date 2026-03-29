@@ -30,7 +30,11 @@ export const LoginView: React.FC = () => {
     }, [clearError]);
 
     const handleLogin = async (values: LoginFormData) => {
-        await login(values.username, values.password);
+        const universityId = parseInt(values.university, 10);
+        if (isNaN(universityId)) {
+            return;
+        }
+        await login(values.username, values.password, universityId);
     };
 
     const handleGuestLogin = () => {

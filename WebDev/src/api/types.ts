@@ -13,6 +13,7 @@ export interface User {
 export interface LoginRequest {
     username: string;
     password: string;
+    university_id: number;
 }
 
 export interface SignupRequest {

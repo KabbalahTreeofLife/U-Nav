@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ interface SignupRequest {
 interface LoginRequest {
     username: string;
     password: string;
+    university_id: number;
 }
 
 router.post('/signup', async (req: Request, res: Response) => {
@@ -33,7 +35,7 @@ router.post('/signup', async (req: Request, res: Response) => {
             return;
         }
 
-        const password_hash = `hashed_${password}`;
+        const password_hash = await bcrypt.hash(password, 10);
 
         const result = await query(
             'INSERT INTO users (university_id, username, password_hash) VALUES ($1, $2, $3) RETURNING id, username, university_id',
@@ -52,16 +54,16 @@ router.post('/signup', async (req: Request, res: Response) => {
 
 router.post('/login', async (req: Request, res: Response) => {
     try {
-        const { username, password }: LoginRequest = req.body;
+        const { username, password, university_id }: LoginRequest = req.body;
 
-        if (!username || !password) {
-            res.status(400).json({ error: 'Missing username or password' });
+        if (!username || !password || !university_id) {
+            res.status(400).json({ error: 'Missing username, password, or university_id' });
             return;
         }
 
         const result = await query(
-            'SELECT id, username, university_id FROM users WHERE username = $1 AND password_hash = $2',
-            [username, `hashed_${password}`]
+            'SELECT id, username, university_id, password_hash FROM users WHERE username = $1',
+            [username]
         );
 
         if (result.rows.length === 0) {
@@ -69,9 +71,24 @@ router.post('/login', async (req: Request, res: Response) => {
             return;
         }
 
+        const user = result.rows[0];
+        
+        // Validate that the user belongs to the selected university
+        if (user.university_id !== university_id) {
+            res.status(401).json({ error: 'Invalid credentials' });
+            return;
+        }
+
+        const isValid = await bcrypt.compare(password, user.password_hash);
+
+        if (!isValid) {
+            res.status(401).json({ error: 'Invalid credentials' });
+            return;
+        }
+
         res.json({
             message: 'Login successful',
-            user: result.rows[0]
+            user: { id: user.id, username: user.username, university_id: user.university_id }
         });
     } catch (error) {
         console.error('Login error:', error);
