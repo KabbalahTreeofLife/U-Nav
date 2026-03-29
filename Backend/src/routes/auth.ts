@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
 
@@ -25,21 +26,23 @@ router.post('/signup', async (req: Request, res: Response) => {
             return;
         }
 
+        // Check if username already exists for THIS university
         const existingUser = await query(
-            'SELECT id FROM users WHERE username = $1',
-            [username]
+            'SELECT id FROM users WHERE username = $1 AND university_id = $2',
+            [username, university_id]
         );
 
         if (existingUser.rows.length > 0) {
-            res.status(409).json({ error: 'Username already exists' });
+            res.status(409).json({ error: 'Username already exists at this university' });
             return;
         }
 
         const password_hash = await bcrypt.hash(password, 10);
+        const user_id = uuidv4();
 
         const result = await query(
-            'INSERT INTO users (university_id, username, password_hash) VALUES ($1, $2, $3) RETURNING id, username, university_id',
-            [university_id, username, password_hash]
+            'INSERT INTO users (id, university_id, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, username, university_id',
+            [user_id, university_id, username, password_hash]
         );
 
         res.status(201).json({
