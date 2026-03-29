@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginView } from './login-signup/LoginView';
 import { SignupView } from './login-signup/SignupView';
-import { MapView } from './map/MapView';
+import { MapView3D } from './map3d/MapView3D';
 import { DiningView } from './dining/DiningView';
 import { AboutView } from './about/AboutView';
 import { ProtectedRoute } from './common/ProtectedRoute';
@@ -16,7 +16,7 @@ function App() {
       
       <Route path="/map" element={
         <ProtectedRoute>
-          <MapView />
+          <MapView3D />
         </ProtectedRoute>
       } />
       <Route path="/dining" element={
