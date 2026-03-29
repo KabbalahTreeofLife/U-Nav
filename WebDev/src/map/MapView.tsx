@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TopNav, BottomNav } from '../common';
-import { sampleEvents, getCategoryColor, getCategoryLabel } from './data';
+import { getEventsByUniversity, getCategoryColor, getCategoryLabel } from './data';
 import type { Event } from './data';
+import { useAuth } from '../common/AuthContext';
 import '../css/Map/Map.css';
 
 type ViewMode = '3d' | '2d';
 
 export const MapView: React.FC = () => {
+    const { universityId } = useAuth();
     const [viewMode, setViewMode] = useState<ViewMode>('3d');
     const [showHeatMap, setShowHeatMap] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showEvents, setShowEvents] = useState(false);
 
-    const filteredEvents = sampleEvents.filter(event =>
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const events = useMemo(() => {
+        return getEventsByUniversity(universityId || 1);
+    }, [universityId]);
+
+    const filteredEvents = useMemo(() => {
+        return events.filter(event =>
+            event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            event.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [events, searchQuery]);
 
     return (
         <div className="map-container">

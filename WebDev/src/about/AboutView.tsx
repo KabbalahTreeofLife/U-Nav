@@ -1,13 +1,8 @@
 import React from 'react';
 import { TopNav, BottomNav } from '../common';
-import { useAuth } from '../common/AuthContext';
-import { getUniversityInfo } from './data';
 import '../css/About/About.css';
 
 export const AboutView: React.FC = () => {
-    const { universityId } = useAuth();
-    const universityInfo = getUniversityInfo(universityId || 1);
-    
     const teamMembers = [
         { name: 'Xanth Reign Palmes', role: 'Team Leader' },
         { name: 'Daniel Koen Parcon', role: 'Team Member' },
@@ -27,32 +22,12 @@ export const AboutView: React.FC = () => {
                 </div>
 
                 <section className="about-section">
-                    <h2>About {universityInfo.name}</h2>
+                    <h2>About U-Nav</h2>
                     <p>
-                        {universityInfo.description}
+                        U-Nav is a comprehensive campus navigation application designed to help students and visitors 
+                        efficiently navigate university campuses. It provides interactive maps, dining guides, and real-time 
+                        crowd tracking to enhance the campus experience.
                     </p>
-                </section>
-
-                <section className="about-section">
-                    <h2>University Information</h2>
-                    <div className="university-info-grid">
-                        <div className="info-item">
-                            <span className="info-label">University Name</span>
-                            <span className="info-value">{universityInfo.name}</span>
-                        </div>
-                        {universityInfo.website && (
-                            <div className="info-item">
-                                <span className="info-label">Website</span>
-                                <span className="info-value">{universityInfo.website}</span>
-                            </div>
-                        )}
-                        {universityInfo.email && (
-                            <div className="info-item">
-                                <span className="info-label">Email</span>
-                                <span className="info-value">{universityInfo.email}</span>
-                            </div>
-                        )}
-                    </div>
                 </section>
 
                 <section className="about-section">
@@ -104,9 +79,9 @@ export const AboutView: React.FC = () => {
                 </section>
 
                 <section className="about-section about-contact">
-                    <h2>Contact {universityInfo.name}</h2>
-                    <p>For questions or feedback, reach out to the development team or university administration.</p>
-                    {universityInfo.email && <p className="about-email">{universityInfo.email}</p>}
+                    <h2>Contact Us</h2>
+                    <p>For questions or feedback, reach out to the development team.</p>
+                    <p className="about-email">team@unav.edu</p>
                 </section>
 
                 <div className="about-footer">

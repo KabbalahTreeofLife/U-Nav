@@ -9,7 +9,8 @@ export interface Event {
     category: 'academic' | 'sports' | 'cultural' | 'social';
 }
 
-export const sampleEvents: Event[] = [
+// CPU (ID: 1) Events
+const CPU_EVENTS: Event[] = [
     {
         id: '1',
         title: 'Engineering Fair 2026',
@@ -71,6 +72,151 @@ export const sampleEvents: Event[] = [
         category: 'academic'
     }
 ];
+
+// ISATU (ID: 6) Events
+const ISATU_EVENTS: Event[] = [
+    {
+        id: '1',
+        title: 'Tech Innovation Summit',
+        description: 'Showcase of latest technological innovations and student projects.',
+        room: 'Engineering Building - Auditorium',
+        date: '2026-04-18',
+        time: '9:00 AM - 4:00 PM',
+        organizer: 'College of Engineering',
+        category: 'academic'
+    },
+    {
+        id: '2',
+        title: 'ISATU Sports Day',
+        description: 'Inter-department sports competition.',
+        room: 'Sports Complex',
+        date: '2026-04-22',
+        time: '1:00 PM - 6:00 PM',
+        organizer: 'Athletics Department',
+        category: 'sports'
+    },
+    {
+        id: '3',
+        title: 'Science Expo 2026',
+        description: 'Exhibition of scientific research and innovations.',
+        room: 'Resource Center - Main Hall',
+        date: '2026-05-05',
+        time: '10:00 AM - 5:00 PM',
+        organizer: 'College of Science',
+        category: 'academic'
+    }
+];
+
+// WVSU (ID: 2) Events
+const WVSU_EVENTS: Event[] = [
+    {
+        id: '1',
+        title: 'WVSU Education Forum',
+        description: 'Forum discussing innovations in education.',
+        room: 'Main Campus Building - Hall',
+        date: '2026-04-16',
+        time: '8:00 AM - 3:00 PM',
+        organizer: 'College of Education',
+        category: 'academic'
+    },
+    {
+        id: '2',
+        title: 'Volleyball Championship',
+        description: 'Inter-college volleyball championship.',
+        room: 'Sports Complex - Court 1',
+        date: '2026-04-23',
+        time: '2:00 PM - 7:00 PM',
+        organizer: 'Sports Office',
+        category: 'sports'
+    }
+];
+
+// UPV (ID: 3) Events
+const UPV_EVENTS: Event[] = [
+    {
+        id: '1',
+        title: 'Research Symposium',
+        description: 'Presentation of academic research and studies.',
+        room: 'Diliman Hall - Conference Room',
+        date: '2026-04-17',
+        time: '9:00 AM - 5:00 PM',
+        organizer: 'Office of Research',
+        category: 'academic'
+    },
+    {
+        id: '2',
+        title: 'UP Arts Festival',
+        description: 'Festival celebrating arts and culture at UP.',
+        room: 'Quadrangle',
+        date: '2026-04-26',
+        time: '5:00 PM - 11:00 PM',
+        organizer: 'College of Arts',
+        category: 'cultural'
+    }
+];
+
+// WIT (ID: 4) Events
+const WIT_EVENTS: Event[] = [
+    {
+        id: '1',
+        title: 'Tech Conference 2026',
+        description: 'Annual technology conference featuring industry speakers.',
+        room: 'Technology Building - Main Auditorium',
+        date: '2026-04-19',
+        time: '8:30 AM - 4:30 PM',
+        organizer: 'Engineering Department',
+        category: 'academic'
+    },
+    {
+        id: '2',
+        title: 'Robotics Competition',
+        description: 'Student robotics teams compete in engineering challenges.',
+        room: 'Research Center - Lab',
+        date: '2026-05-02',
+        time: '9:00 AM - 6:00 PM',
+        organizer: 'Robotics Club',
+        category: 'sports'
+    }
+];
+
+// USA (ID: 5) Events
+const USA_EVENTS: Event[] = [
+    {
+        id: '1',
+        title: 'Philosophy Seminar',
+        description: 'Discussion on contemporary philosophical issues.',
+        room: 'San Agustin Hall - Room 201',
+        date: '2026-04-21',
+        time: '10:00 AM - 1:00 PM',
+        organizer: 'College of Liberal Arts',
+        category: 'academic'
+    },
+    {
+        id: '2',
+        title: 'USA Cultural Show',
+        description: 'Celebration of cultural heritage and traditions.',
+        room: 'Auditorium',
+        date: '2026-04-27',
+        time: '6:30 PM - 9:30 PM',
+        organizer: 'Student Organization',
+        category: 'cultural'
+    }
+];
+
+// Map of university ID to events
+export const getEventsByUniversity = (universityId: number): Event[] => {
+    const eventMap: { [key: number]: Event[] } = {
+        1: CPU_EVENTS,
+        2: WVSU_EVENTS,
+        3: UPV_EVENTS,
+        4: WIT_EVENTS,
+        5: USA_EVENTS,
+        6: ISATU_EVENTS,
+    };
+    return eventMap[universityId] || CPU_EVENTS; // Default to CPU if not found
+};
+
+export const sampleEvents: Event[] = CPU_EVENTS;
 
 export const getCategoryColor = (category: Event['category']): string => {
     switch (category) {
