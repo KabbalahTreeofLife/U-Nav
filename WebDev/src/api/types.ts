@@ -6,8 +6,23 @@ export interface University {
 
 export interface User {
     id: number;
-    username: string;
+    email: string;
+    username?: string;
     university_id: number;
+}
+
+export interface LoginRequest {
+    email: string;
+    password: string;
+    university_id: number;
+}
+
+export interface SignupRequest {
+    university_id: number;
+    email: string;
+    username?: string;
+    password: string;
+    student_id?: string;
 }
 
 export interface LoginRequest {

@@ -7,42 +7,64 @@ const router = Router();
 
 interface SignupRequest {
     university_id: number;
-    username: string;
+    email: string;
+    username?: string;
     password: string;
+    student_id?: string;
 }
 
 interface LoginRequest {
-    username: string;
+    email: string;
     password: string;
     university_id: number;
 }
 
 router.post('/signup', async (req: Request, res: Response) => {
     try {
-        const { university_id, username, password }: SignupRequest = req.body;
+        const { university_id, email, username, password, student_id }: SignupRequest = req.body;
 
-        if (!university_id || !username || !password) {
-            res.status(400).json({ error: 'Missing required fields' });
+        if (!university_id || !email || !password) {
+            res.status(400).json({ error: 'Missing required fields: university_id, email, password' });
             return;
         }
 
-        // Check if username already exists for THIS university
-        const existingUser = await query(
-            'SELECT id FROM users WHERE username = $1 AND university_id = $2',
-            [username, university_id]
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            res.status(400).json({ error: 'Invalid email format' });
+            return;
+        }
+
+        // Check if email already exists for THIS university
+        const existingEmail = await query(
+            'SELECT id FROM users WHERE email = $1 AND university_id = $2',
+            [email, university_id]
         );
 
-        if (existingUser.rows.length > 0) {
-            res.status(409).json({ error: 'Username already exists at this university' });
+        if (existingEmail.rows.length > 0) {
+            res.status(409).json({ error: 'Email already exists at this university' });
             return;
+        }
+
+        // Check if student_id already exists for THIS university (if provided)
+        if (student_id) {
+            const existingStudentId = await query(
+                'SELECT id FROM users WHERE student_id = $1 AND university_id = $2',
+                [student_id, university_id]
+            );
+
+            if (existingStudentId.rows.length > 0) {
+                res.status(409).json({ error: 'Student ID already exists at this university' });
+                return;
+            }
         }
 
         const password_hash = await bcrypt.hash(password, 10);
         const user_id = uuidv4();
 
         const result = await query(
-            'INSERT INTO users (id, university_id, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, username, university_id',
-            [user_id, university_id, username, password_hash]
+            'INSERT INTO users (id, university_id, email, username, password_hash, student_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, username, university_id, student_id',
+            [user_id, university_id, email, username || null, password_hash, student_id || null]
         );
 
         res.status(201).json({
@@ -57,16 +79,16 @@ router.post('/signup', async (req: Request, res: Response) => {
 
 router.post('/login', async (req: Request, res: Response) => {
     try {
-        const { username, password, university_id }: LoginRequest = req.body;
+        const { email, password, university_id }: LoginRequest = req.body;
 
-        if (!username || !password || !university_id) {
-            res.status(400).json({ error: 'Missing username, password, or university_id' });
+        if (!email || !password || !university_id) {
+            res.status(400).json({ error: 'Missing email, password, or university_id' });
             return;
         }
 
         const result = await query(
-            'SELECT id, username, university_id, password_hash FROM users WHERE username = $1',
-            [username]
+            'SELECT id, email, username, university_id, password_hash FROM users WHERE email = $1 AND university_id = $2',
+            [email, university_id]
         );
 
         if (result.rows.length === 0) {
@@ -75,13 +97,6 @@ router.post('/login', async (req: Request, res: Response) => {
         }
 
         const user = result.rows[0];
-        
-        // Validate that the user belongs to the selected university
-        if (user.university_id !== university_id) {
-            res.status(401).json({ error: 'Invalid credentials' });
-            return;
-        }
-
         const isValid = await bcrypt.compare(password, user.password_hash);
 
         if (!isValid) {
@@ -91,7 +106,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
         res.json({
             message: 'Login successful',
-            user: { id: user.id, username: user.username, university_id: user.university_id }
+            user: { id: user.id, email: user.email, username: user.username, university_id: user.university_id }
         });
     } catch (error) {
         console.error('Login error:', error);

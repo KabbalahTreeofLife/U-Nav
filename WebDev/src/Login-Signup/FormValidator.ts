@@ -44,7 +44,8 @@ export class SignupValidator extends BaseValidator {
 export const createLoginValidator = (): FormValidator => {
     const validator = new FormValidator();
     validator.addRequired('university', 'University');
-    validator.addRequired('username', 'Username');
+    validator.addRequired('email', 'Email');
+    validator.addEmail('email', 'Email');
     validator.addMinLength('password', 'Password', 6);
     return validator;
 };

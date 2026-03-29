@@ -40,6 +40,7 @@ export const SignupView: React.FC = () => {
         
         const success = await signup(
             parseInt(values.university),
+            values.email,
             values.username,
             values.password
         );

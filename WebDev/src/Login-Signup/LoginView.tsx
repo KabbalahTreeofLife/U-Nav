@@ -9,14 +9,14 @@ import '../css/Login-Signup/auth.css';
 
 interface LoginFormData {
     university: string;
-    username: string;
+    email: string;
     password: string;
     [key: string]: string;
 }
 
 const initialValues: LoginFormData = {
     university: '',
-    username: '',
+    email: '',
     password: '',
 };
 
@@ -34,7 +34,7 @@ export const LoginView: React.FC = () => {
         if (isNaN(universityId)) {
             return;
         }
-        await login(values.username, values.password, universityId);
+        await login(values.email, values.password, universityId);
     };
 
     const handleGuestLogin = () => {
@@ -83,16 +83,16 @@ export const LoginView: React.FC = () => {
                     />
 
                     <InputField
-                        type="text"
-                        name="username"
-                        label="Username"
-                        value={values.username}
+                        type="email"
+                        name="email"
+                        label="University Email"
+                        value={values.email}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        placeholder="Enter your username"
+                        placeholder="Enter your university email"
                         required
-                        autoComplete="username"
-                        error={errors.username}
+                        autoComplete="email"
+                        error={errors.email}
                         disabled={isLoading}
                     />
 

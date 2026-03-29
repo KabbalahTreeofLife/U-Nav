@@ -4,7 +4,8 @@ import { authApi } from '../api';
 
 interface AuthUser {
     id: number;
-    username: string;
+    email: string;
+    username?: string;
     university_id: number;
     university_name?: string;
 }
@@ -19,8 +20,8 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-    login: (username: string, password: string, universityId: number) => Promise<boolean>;
-    signup: (universityId: number, username: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string, universityId: number) => Promise<boolean>;
+    signup: (universityId: number, email: string, username?: string, password?: string) => Promise<boolean>;
     loginAsGuest: (universityId: number, universityName: string) => void;
     logout: () => void;
     clearError: () => void;
@@ -39,11 +40,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const login = useCallback(async (username: string, password: string, universityId: number): Promise<boolean> => {
+    const login = useCallback(async (email: string, password: string, universityId: number): Promise<boolean> => {
         setIsLoading(true);
         setError(null);
 
-        const result = await authApi.login({ username, password, university_id: universityId });
+        const result = await authApi.login({ email, password, university_id: universityId });
 
         if (result.success) {
             setUser(result.data.user || null);
@@ -58,11 +59,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
     }, []);
 
-    const signup = useCallback(async (universityId: number, username: string, password: string): Promise<boolean> => {
+    const signup = useCallback(async (universityId: number, email: string, username?: string, password?: string): Promise<boolean> => {
         setIsLoading(true);
         setError(null);
 
-        const result = await authApi.signup({ university_id: universityId, username, password });
+        if (!password) {
+            setError('Password is required');
+            setIsLoading(false);
+            return false;
+        }
+
+        const result = await authApi.signup({ 
+            university_id: universityId, 
+            email, 
+            username,
+            password 
+        });
 
         if (result.success) {
             setIsLoading(false);
