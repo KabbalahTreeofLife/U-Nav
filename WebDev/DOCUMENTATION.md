@@ -13,10 +13,6 @@ A comprehensive campus navigation system built with React, TypeScript, and Vite.
 - [Environment Variables](#environment-variables)
 - [API Reference](#api-reference)
 - [Folder Details](#folder-details)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -256,57 +252,3 @@ Stylesheets organized by feature:
 
 ### `public/models/`
 Contains 3D GLB model files for campus rendering (`CPU-3d_map.glb`).
-
----
-
-## Deployment
-
-### Building for Production
-
-```bash
-npm run build
-```
-
-The production build output will be in the `dist/` directory.
-
-### Deployment Considerations
-
-1. **API Backend**: Ensure the backend server is running and accessible at the configured API URL
-2. **CORS**: Configure the backend to accept requests from the deployed frontend domain
-3. **Environment Variables**: Set `VITE_API_BASE_URL` to the production API endpoint
-4. **Static Hosting**: The `dist/` folder can be deployed to any static hosting service (Vercel, Netlify, GitHub Pages, etc.)
-
-### Vercel / Netlify
-
-For SPA routing to work correctly, configure a rewrite rule:
-
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "index.html" }]
-}
-```
-
----
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## License
-
-This project is proprietary software developed for university use.
-
----
-
-## Acknowledgments
-
-- Built with [Vite](https://vitejs.dev/)
-- Powered by [React](https://reactjs.org/)
-- 3D rendering with [Three.js](https://threejs.org/) and [@react-three/fiber](https://docs.pmndrs/react-three-fiber)
-- Physics helpers with [@react-three/drei](https://github.com/pmndrs/drei)
