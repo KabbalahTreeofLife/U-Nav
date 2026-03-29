@@ -97,12 +97,11 @@ export const SignupView: React.FC = () => {
                     <InputField
                         type="text"
                         name="username"
-                        label="Username"
+                        label="Display Name (Optional)"
                         value={values.username}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        placeholder="Choose a username"
-                        required
+                        placeholder="Choose a display name"
                         autoComplete="username"
                         error={errors.username}
                         disabled={isLoading}

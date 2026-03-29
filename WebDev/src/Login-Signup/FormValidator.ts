@@ -53,7 +53,8 @@ export const createLoginValidator = (): FormValidator => {
 export const createSignupValidator = (getEmailDomain: (universityId: number) => string | undefined): FormValidator => {
     const validator = new FormValidator();
     validator.addRequired('university', 'University');
-    validator.addRequired('username', 'Username');
+    // Username is now optional - it's just a display name
+    // validator.addRequired('username', 'Username');
     validator.addMinLength('username', 'Username', 3);
     validator.addRequired('email', 'University Email');
     validator.addEmail('email', 'University Email');
