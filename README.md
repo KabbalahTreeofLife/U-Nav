@@ -26,11 +26,11 @@ _Campus navigation, reimagined._
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|------------|
+| Layer    | Technology                   |
+| -------- | ---------------------------- |
 | Frontend | React 19 + TypeScript + Vite |
-| Backend | Express.js + TypeScript |
-| Database | PostgreSQL 18 |
+| Backend  | Express.js + TypeScript      |
+| Database | PostgreSQL 18                |
 
 ---
 
@@ -68,46 +68,39 @@ Before running this project, ensure you have:
 4. Click the **Play button (▶️)** to execute
 
 Or via command line:
+
 ```bash
 psql -U postgres -d unav_db -f Database/schema.sql
 ```
 
 ---
 
-### 2. Backend Setup
+### 2. Project Setup
 
 ```bash
-cd Backend
+# At U-Nav directory
+npm run install-all
 
-# Install dependencies
-npm install
+# Update Database and Backend
+cd Backend
 
 # Copy environment file
 copy .env.example .env
 
-# Edit .env and update DB_PASSWORD if needed
+# Open .env and update DB_PASSWORD
+DB_PASSWORD = your_password
 
-# Start development server
+# Run at Backend directory
+npx ts-node src/scripts/setupTestUsersCorrect.ts
+
+cd ..
+
+# Run project
 npm run dev
 ```
 
-Backend runs on: http://localhost:3000
-
----
-
-### 3. Frontend Setup
-
-```bash
-cd WebDev
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-Frontend runs on: http://localhost:5173
+Frontend: https://localhost:5173
+Backend: https://localhost:3000
 
 ---
 
@@ -151,13 +144,13 @@ U-Nav/
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check |
-| GET | `/api/health` | Server status |
-| GET | `/api/auth/universities` | Get all universities |
-| POST | `/api/auth/signup` | Create new user |
-| POST | `/api/auth/login` | Login user |
+| Method | Endpoint                 | Description          |
+| ------ | ------------------------ | -------------------- |
+| GET    | `/`                      | Health check         |
+| GET    | `/api/health`            | Server status        |
+| GET    | `/api/auth/universities` | Get all universities |
+| POST   | `/api/auth/signup`       | Create new user      |
+| POST   | `/api/auth/login`        | Login user           |
 
 ---
 
@@ -179,6 +172,7 @@ Each team member needs to:
 ### "psql is not recognized"
 
 Add PostgreSQL to your system PATH:
+
 1. Press `Win + R`, type `sysdm.cpl`
 2. Go to Advanced → Environment Variables
 3. Edit System PATH, add: `C:\Program Files\PostgreSQL\18\bin`
@@ -187,6 +181,7 @@ Add PostgreSQL to your system PATH:
 ### Backend won't connect to database
 
 Check your `.env` file:
+
 - `DB_PASSWORD` should match your PostgreSQL password
 - `DB_NAME` should be `unav_db`
 
