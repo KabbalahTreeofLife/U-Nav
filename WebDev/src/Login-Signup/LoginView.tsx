@@ -38,7 +38,7 @@ export const LoginView: React.FC = () => {
     };
 
     const handleGuestLogin = () => {
-        alert('Guest mode is not yet implemented.');
+        navigate('/guest-login');
     };
 
     const {

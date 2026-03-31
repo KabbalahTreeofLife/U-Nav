@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 interface BottomNavProps {
     className?: string;
@@ -8,10 +9,11 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ className = '' }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isGuest } = useAuth();
 
     const isActive = (path: string) => location.pathname === path;
 
-    const navItems = [
+    const baseNavItems = [
         {
             path: '/map',
             label: 'Map',
@@ -48,6 +50,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ className = '' }) => {
             ),
         },
     ];
+
+    const navItems = isGuest
+        ? baseNavItems.filter(item => item.path === '/map')
+        : baseNavItems;
 
     return (
         <nav className={`bottom-nav ${className}`}>
