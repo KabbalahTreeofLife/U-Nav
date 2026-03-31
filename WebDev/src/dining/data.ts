@@ -15,10 +15,10 @@ export interface DiningLocation {
 // University-specific dining locations
 const CPU_DINING: DiningLocation[] = [
     {
-        id: 'cpu-mess',
-        name: 'CPU Main Mess Hall',
+        id: 'cpu-uy',
+        name: 'CPU Uy Building',
         type: 'mess',
-        building: 'Administration Building',
+        building: 'Uy Building',
         floor: 1,
         operatingHours: '6:00 AM - 8:00 PM',
         priceRange: '$',
@@ -30,7 +30,7 @@ const CPU_DINING: DiningLocation[] = [
         id: 'cpu-cafeteria',
         name: 'University Cafeteria',
         type: 'restaurant',
-        building: 'College of Engineering',
+        building: 'Cafeteria Building',
         floor: 1,
         operatingHours: '7:00 AM - 7:00 PM',
         priceRange: '$',
@@ -39,77 +39,17 @@ const CPU_DINING: DiningLocation[] = [
         coordinates: { x: 10, y: 5 }
     },
     {
-        id: 'cpu-coffee-shop',
-        name: 'Campus Coffee Hub',
-        type: 'cafe',
-        building: 'Library Building',
+        id: 'PopUp-Bistro',
+        name: 'Popup Bistro',
+        type: 'restaurant',
+        building: 'Outside of CPU',
         floor: 2,
         operatingHours: '6:00 AM - 10:00 PM',
         priceRange: '$$',
-        cuisine: ['Coffee', 'Pastries', 'Sandwiches'],
+        cuisine: ['Filipino', 'American', 'Fast Food'],
         rating: 4.5,
         coordinates: { x: -5, y: 8 }
-    },
-    {
-        id: 'cpu-food-court',
-        name: 'Student Food Court',
-        type: 'restaurant',
-        building: 'Student Center',
-        floor: 1,
-        operatingHours: '8:00 AM - 8:00 PM',
-        priceRange: '$',
-        cuisine: ['Various Filipino Dishes', 'Snacks', 'Drinks'],
-        rating: 3.8,
-        coordinates: { x: 5, y: -3 }
-    },
-    {
-        id: 'cpu-bake-shop',
-        name: 'Sweet Delights Bakery',
-        type: 'snack',
-        building: 'College of Arts & Sciences',
-        floor: 1,
-        operatingHours: '7:00 AM - 6:00 PM',
-        priceRange: '$$',
-        cuisine: ['Baked Goods', 'Pastries', 'Coffee'],
-        rating: 4.3,
-        coordinates: { x: 8, y: 2 }
-    },
-    {
-        id: 'cpu-convenience',
-        name: 'Campus Convenience Store',
-        type: 'snack',
-        building: 'Dormitory Area',
-        floor: 1,
-        operatingHours: '24 Hours',
-        priceRange: '$',
-        cuisine: ['Snacks', 'Beverages', 'Basic Items'],
-        rating: 4.1,
-        coordinates: { x: -8, y: -5 }
-    },
-    {
-        id: 'cpu-pizza',
-        name: 'Pizza Place',
-        type: 'restaurant',
-        building: 'Sports Complex',
-        floor: 1,
-        operatingHours: '10:00 AM - 9:00 PM',
-        priceRange: '$$',
-        cuisine: ['Pizza', 'Pasta', 'Sandwiches'],
-        rating: 4.4,
-        coordinates: { x: 12, y: -2 }
-    },
-    {
-        id: 'cpu-tea-house',
-        name: 'Bubble Tea Station',
-        type: 'cafe',
-        building: 'College of Business',
-        floor: 1,
-        operatingHours: '9:00 AM - 7:00 PM',
-        priceRange: '$$',
-        cuisine: ['Bubble Tea', 'Snacks', 'Light Meals'],
-        rating: 4.6,
-        coordinates: { x: 3, y: 6 }
-     }
+    }
 ];
 
 // ISATU (ID: 6) Dining Locations
