@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginView } from './login-signup/LoginView';
-import { SignupView } from './login-signup/SignupView';
+import { LoginView } from './Login-Signup/LoginView';
+import { SignupView } from './Login-Signup/SignupView';
+import { GuestLoginView } from './Login-Signup/GuestLoginView';
 import { MapView } from './map/MapView';
 import { DiningView } from './dining/DiningView';
 import { AboutView } from './about/AboutView';
@@ -13,6 +14,7 @@ function App() {
       
       <Route path="/login" element={<LoginView />} />
       <Route path="/signup" element={<SignupView />} />
+      <Route path="/guest-login" element={<GuestLoginView />} />
       
       <Route path="/map" element={
         <ProtectedRoute>
