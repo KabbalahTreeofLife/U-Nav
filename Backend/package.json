@@ -7,7 +7,12 @@
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate:add-role": "ts-node src/scripts/migrateAddRole.ts",
+    "promote-admin": "ts-node src/scripts/promoteToAdmin.ts",
+    "setup-global-admin": "ts-node src/scripts/setupGlobalAdmin.ts",
+    "add-isatu": "ts-node src/scripts/addISATU.ts",
+    "remove-isatu": "ts-node src/scripts/removeISATU.ts"
   },
   "keywords": [],
   "author": "",

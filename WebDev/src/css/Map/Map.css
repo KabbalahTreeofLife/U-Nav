@@ -1,7 +1,7 @@
 .map-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     background-color: var(--color-bg);
     padding-top: 70px;
 }
@@ -168,8 +168,15 @@
 /* 3D Map Styles */
 .map3d-container {
     width: 100%;
-    height: calc(100vh - 70px - 80px);
+    height: 100%;
     position: relative;
+}
+
+.map-3d-view {
+    width: 100%;
+    height: calc(100vh - 70px - 60px - 80px);
+    position: relative;
+    background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f2 50%, #c5dce8 100%);
 }
 
 .map3d-controls {

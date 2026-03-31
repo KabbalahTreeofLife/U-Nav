@@ -1,19 +1,24 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { authApi } from '../api';
+import type { UserRole } from '../api/types';
 
 interface AuthUser {
     id: number;
     email: string;
     username?: string;
-    university_id: number;
+    university_id: number | null;
     university_name?: string;
+    role?: UserRole;
+    isGlobalAdmin?: boolean;
 }
 
 interface AuthState {
     user: AuthUser | null;
     isAuthenticated: boolean;
     isGuest: boolean;
+    isAdmin: boolean;
+    isGlobalAdmin: boolean;
     universityId: number | null;
     isLoading: boolean;
     error: string | null;
@@ -47,8 +52,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const result = await authApi.login({ email, password, university_id: universityId });
 
         if (result.success) {
-            setUser(result.data.user || null);
-            setUniversityId(result.data.user?.university_id || null);
+            const loggedInUser = result.data.user || null;
+            setUser(loggedInUser);
+            const effectiveUniversityId = loggedInUser?.isGlobalAdmin ? universityId : (loggedInUser?.university_id || null);
+            setUniversityId(effectiveUniversityId);
             setIsGuest(false);
             setIsLoading(false);
             return true;
@@ -86,17 +93,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
     }, []);
 
-     const loginAsGuest = useCallback((universityId: number, universityName: string) => {
-         setUser({
-             id: 0,
-             email: 'guest@guest.local',
-             username: 'Guest',
-             university_id: universityId,
-             university_name: universityName,
-         });
-         setUniversityId(universityId);
-         setIsGuest(true);
-     }, []);
+    const loginAsGuest = useCallback((universityId: number, universityName: string) => {
+        setUser({
+            id: 0,
+            email: 'guest@guest.local',
+            username: 'Guest',
+            university_id: universityId,
+            university_name: universityName,
+            role: 'user',
+        });
+        setUniversityId(universityId);
+        setIsGuest(true);
+    }, []);
 
     const logout = useCallback(() => {
         setUser(null);
@@ -113,6 +121,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         isAuthenticated: user !== null,
         isGuest,
+        isAdmin: user?.role === 'admin',
+        isGlobalAdmin: user?.isGlobalAdmin === true,
         universityId,
         isLoading,
         error,
@@ -126,7 +136,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return React.createElement(AuthContext.Provider, { value }, children);
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {

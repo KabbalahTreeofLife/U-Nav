@@ -13,7 +13,7 @@ export const AboutView: React.FC = () => {
 
     return (
         <div className="about-container">
-            <TopNav title="U-Nav" />
+            <TopNav title="University Navigate" />
             <div className="about-content">
                 <div className="about-header">
                     <h1 className="about-title">U-Nav</h1>

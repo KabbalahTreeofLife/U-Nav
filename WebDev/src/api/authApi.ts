@@ -1,19 +1,6 @@
 import { API_ENDPOINTS } from './config';
-import type { LoginRequest, SignupRequest, AuthResponse, UniversitiesResponse, ApiError } from './types';
-
-type ResponseResult<T> = 
-    | { success: true; data: T }
-    | { success: false; error: string };
-
-async function handleResponse<T>(response: Response): Promise<ResponseResult<T>> {
-    if (!response.ok) {
-        const errorData: ApiError = await response.json().catch(() => ({ error: 'Unknown error' }));
-        return { success: false, error: errorData.error };
-    }
-    
-    const data: T = await response.json();
-    return { success: true, data };
-}
+import type { LoginRequest, SignupRequest, AuthResponse, UniversitiesResponse } from './types';
+import { handleResponse, type ResponseResult } from './responseHelper';
 
 export const authApi = {
     async login(credentials: LoginRequest): Promise<ResponseResult<AuthResponse>> {

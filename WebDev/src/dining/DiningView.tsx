@@ -46,7 +46,7 @@ export const DiningView: React.FC = () => {
 
     return (
         <div className="dining-container">
-            <TopNav title="U-Nav" />
+            <TopNav title="University Navigate" />
             
             <div className="dining-search">
                 <input

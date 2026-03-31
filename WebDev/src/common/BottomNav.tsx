@@ -9,9 +9,14 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ className = '' }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isGuest } = useAuth();
+    const { isGuest, isAdmin } = useAuth();
 
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = (path: string) => {
+        if (path === '/map') {
+            return location.pathname.startsWith('/map');
+        }
+        return location.pathname === path;
+    };
 
     const baseNavItems = [
         {
@@ -51,9 +56,25 @@ export const BottomNav: React.FC<BottomNavProps> = ({ className = '' }) => {
         },
     ];
 
-    const navItems = isGuest
+    const adminNavItem = {
+        path: '/admin',
+        label: 'Admin',
+        icon: (
+            <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+            </svg>
+        ),
+    };
+
+    let navItems = isGuest
         ? baseNavItems.filter(item => item.path === '/map')
         : baseNavItems;
+    
+    if (isAdmin) {
+        navItems = [...baseNavItems, adminNavItem];
+    }
 
     return (
         <nav className={`bottom-nav ${className}`}>

@@ -27,14 +27,12 @@ router.post('/signup', async (req: Request, res: Response) => {
             return;
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             res.status(400).json({ error: 'Invalid email format' });
             return;
         }
 
-        // Check if email already exists for THIS university
         const existingEmail = await query(
             'SELECT id FROM users WHERE email = $1 AND university_id = $2',
             [email, university_id]
@@ -45,7 +43,6 @@ router.post('/signup', async (req: Request, res: Response) => {
             return;
         }
 
-        // Check if student_id already exists for THIS university (if provided)
         if (student_id) {
             const existingStudentId = await query(
                 'SELECT id FROM users WHERE student_id = $1 AND university_id = $2',
@@ -61,8 +58,8 @@ router.post('/signup', async (req: Request, res: Response) => {
         const password_hash = await bcrypt.hash(password, 10);
 
         const result = await query(
-            'INSERT INTO users (university_id, email, username, password_hash, student_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, username, university_id, student_id',
-            [university_id, email, username || null, password_hash, student_id || null]
+            'INSERT INTO users (university_id, email, username, password_hash, student_id, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, username, university_id, student_id, role',
+            [university_id, email, username || null, password_hash, student_id || null, 'user']
         );
 
         res.status(201).json({
@@ -84,19 +81,46 @@ router.post('/login', async (req: Request, res: Response) => {
             return;
         }
 
-        const result = await query(
-            'SELECT id, email, username, university_id, password_hash FROM users WHERE email = $1 AND university_id = $2',
-            [email, university_id]
+        const userResult = await query(
+            'SELECT id, email, username, university_id, password_hash, role FROM users WHERE email = $1',
+            [email]
         );
 
-        if (result.rows.length === 0) {
+        if (userResult.rows.length === 0) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
 
-        const user = result.rows[0];
-        const isValid = await bcrypt.compare(password, user.password_hash);
+        const user = userResult.rows[0];
 
+        if (user.role === 'admin' && user.university_id === null) {
+            const isValid = await bcrypt.compare(password, user.password_hash);
+            if (!isValid) {
+                res.status(401).json({ error: 'Invalid credentials' });
+                return;
+            }
+
+            res.json({
+                message: 'Login successful',
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    university_id: 0,
+                    university_name: 'Global Admin',
+                    role: 'admin',
+                    isGlobalAdmin: true
+                }
+            });
+            return;
+        }
+
+        if (user.university_id !== null && user.university_id !== university_id) {
+            res.status(401).json({ error: 'Invalid credentials' });
+            return;
+        }
+
+        const isValid = await bcrypt.compare(password, user.password_hash);
         if (!isValid) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
@@ -104,7 +128,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
         res.json({
             message: 'Login successful',
-            user: { id: user.id, email: user.email, username: user.username, university_id: user.university_id }
+            user: { id: user.id, email: user.email, username: user.username, university_id: user.university_id, role: user.role }
         });
     } catch (error) {
         console.error('Login error:', error);

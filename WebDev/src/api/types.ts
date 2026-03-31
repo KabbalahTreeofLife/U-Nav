@@ -1,3 +1,5 @@
+export type UserRole = 'user' | 'admin';
+
 export interface University {
     id: number;
     name: string;
@@ -8,7 +10,11 @@ export interface User {
     id: number;
     email: string;
     username?: string;
-    university_id: number;
+    university_id: number | null;
+    university_name?: string;
+    role?: UserRole;
+    isGlobalAdmin?: boolean;
+    created_at?: string;
 }
 
 export interface LoginRequest {
@@ -32,6 +38,15 @@ export interface AuthResponse {
 
 export interface UniversitiesResponse {
     universities: University[];
+}
+
+export interface UsersResponse {
+    users: User[];
+}
+
+export interface UpdateRoleRequest {
+    role: UserRole;
+    university_id?: number | null;
 }
 
 export interface ApiError {

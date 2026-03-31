@@ -1,45 +1,6 @@
 import { BaseValidator } from './validation';
-import type { ValidationRule } from './validation';
 
-export class FormValidator extends BaseValidator {
-    public build(): ValidationRule[] {
-        const allRules: ValidationRule[] = [];
-        for (const rules of this.rules.values()) {
-            allRules.push(...rules);
-        }
-        return allRules;
-    }
-}
-
-export class LoginValidator extends BaseValidator {
-    public build(): ValidationRule[] {
-        return this
-            .addRequired('university', 'University')
-            .addRequired('username', 'Username')
-            .addMinLength('password', 'Password', 6)
-            .build();
-    }
-}
-
-export class SignupValidator extends BaseValidator {
-    public build(): ValidationRule[] {
-        return this
-            .addRequired('university', 'University')
-            .addRequired('username', 'Username')
-            .addMinLength('username', 'Username', 3)
-            .addRequired('password', 'Password')
-            .addMinLength('password', 'Password', 8)
-            .addPattern(
-                'password',
-                'Password',
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                'Password must contain uppercase, lowercase, and a number'
-            )
-            .addRequired('confirmPassword', 'Confirm Password')
-            .addPasswordMatch('password', 'confirmPassword')
-            .build();
-    }
-}
+export class FormValidator extends BaseValidator {}
 
 export const createLoginValidator = (): FormValidator => {
     const validator = new FormValidator();
@@ -53,9 +14,6 @@ export const createLoginValidator = (): FormValidator => {
 export const createSignupValidator = (getEmailDomain: (universityId: number) => string | undefined): FormValidator => {
     const validator = new FormValidator();
     validator.addRequired('university', 'University');
-    // Username is now optional - it's just a display name
-    // validator.addRequired('username', 'Username');
-    validator.addMinLength('username', 'Username', 3);
     validator.addRequired('email', 'University Email');
     validator.addEmail('email', 'University Email');
     validator.addUniversityEmail('email', 'university', getEmailDomain);
