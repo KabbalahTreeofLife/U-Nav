@@ -52,6 +52,7 @@ nul
 # Backend specific
 # ============================================
 Backend/dist/
+Backend/src/scripts/
 
 # ============================================
 # Frontend specific

@@ -47,7 +47,7 @@ const initialFormData: DiningFormData = {
 };
 
 export const DiningAdmin: React.FC = () => {
-  const { universityId: userUniversityId, isGlobalAdmin } = useAuth();
+  const { universityId: userUniversityId, isGlobalAdmin, user } = useAuth();
   const { universities } = useUniversities();
   const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
   const [locations, setLocations] = useState<DiningLocation[]>([]);
@@ -151,7 +151,7 @@ export const DiningAdmin: React.FC = () => {
         };
 
         if (editingDbId) {
-          const result = await diningApi.updateLocation(editingDbId, updateData);
+          const result = await diningApi.updateLocation(editingDbId, updateData, user?.id || 0);
           if (result.success) {
             await fetchLocations();
           } else {
@@ -182,7 +182,7 @@ export const DiningAdmin: React.FC = () => {
           imageUrl: formData.imageUrl || undefined,
         };
 
-        const result = await diningApi.createLocation(createData);
+        const result = await diningApi.createLocation(createData, user?.id || 0);
         if (result.success) {
           await fetchLocations();
         } else {
@@ -203,7 +203,7 @@ export const DiningAdmin: React.FC = () => {
     
     if (isFromDb) {
       const dbId = parseInt(id.replace('db-', ''));
-      const result = await diningApi.deleteLocation(dbId);
+      const result = await diningApi.deleteLocation(dbId, user?.id || 0);
       if (result.success) {
         await fetchLocations();
       } else {
@@ -229,7 +229,7 @@ export const DiningAdmin: React.FC = () => {
             <UniversityDropdownSelect
               value={selectedUniversityId}
               onChange={setSelectedUniversityId}
-              universities={universities}
+              universities={[{ id: 0, name: 'All Universities', email_domain: '' }, ...universities]}
             />
           )}
           <button className="btn btn-primary" onClick={openAddModal}>

@@ -36,7 +36,7 @@ const initialFormData: EventFormData = {
 };
 
 export const EventsAdmin: React.FC = () => {
-  const { universityId: userUniversityId, isGlobalAdmin } = useAuth();
+  const { universityId: userUniversityId, isGlobalAdmin, user } = useAuth();
   const { universities } = useUniversities();
   const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
   const [events, setEvents] = useState<Event[]>([]);
@@ -136,7 +136,7 @@ export const EventsAdmin: React.FC = () => {
         };
 
         if (editingDbId) {
-          const result = await eventsApi.updateEvent(editingDbId, updateData);
+          const result = await eventsApi.updateEvent(editingDbId, updateData, user?.id || 0);
           if (result.success) {
             await fetchEvents();
           } else {
@@ -165,7 +165,7 @@ export const EventsAdmin: React.FC = () => {
           category: formData.category,
         };
 
-        const result = await eventsApi.createEvent(createData);
+        const result = await eventsApi.createEvent(createData, user?.id || 0);
         if (result.success) {
           await fetchEvents();
         } else {
@@ -186,7 +186,7 @@ export const EventsAdmin: React.FC = () => {
     
     if (isFromDb) {
       const dbId = parseInt(id.replace('db-', ''));
-      const result = await eventsApi.deleteEvent(dbId);
+      const result = await eventsApi.deleteEvent(dbId, user?.id || 0);
       if (result.success) {
         await fetchEvents();
       } else {
@@ -226,7 +226,7 @@ export const EventsAdmin: React.FC = () => {
             <UniversityDropdownSelect
               value={selectedUniversityId}
               onChange={setSelectedUniversityId}
-              universities={universities}
+              universities={[{ id: 0, name: 'All Universities', email_domain: '' }, ...universities]}
             />
           )}
           <button className="btn btn-primary" onClick={openAddModal}>

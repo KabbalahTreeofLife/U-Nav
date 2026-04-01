@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import { mapUserRow } from '../utils/mappers';
+import { requireAdmin, canManageUser, type AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -41,10 +42,13 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.put('/:id/role', async (req: Request, res: Response) => {
+router.put('/:id/role', requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
         const { role, university_id } = req.body;
+        const actorId = req.userId;
+        const actorUniversityId = req.userUniversityId;
+        const isGlobalAdmin = req.isGlobalAdmin;
 
         if (!role || !['user', 'admin', 'global'].includes(role)) {
             res.status(400).json({ error: 'Invalid role. Must be "user", "admin", or "global"' });
@@ -59,15 +63,34 @@ router.put('/:id/role', async (req: Request, res: Response) => {
 
         const currentUser = userCheck.rows[0];
 
+        const targetId = Array.isArray(id) ? parseInt(id[0]) : parseInt(id);
+        
+        const permission = canManageUser(
+            actorUniversityId ?? null,
+            isGlobalAdmin ?? false,
+            currentUser.university_id,
+            targetId,
+            actorId ?? 0
+        );
+
+        if (!permission.allowed) {
+            res.status(403).json({ error: permission.error });
+            return;
+        }
+
         if (currentUser.role === 'admin' && currentUser.university_id === null) {
             res.status(403).json({ error: 'Cannot modify a global admin' });
             return;
         }
 
         let newRole = role;
-        let newUniversityId = university_id || currentUser.university_id;
+        let newUniversityId = university_id !== undefined ? university_id : currentUser.university_id;
 
         if (role === 'global') {
+            if (!isGlobalAdmin) {
+                res.status(403).json({ error: 'Only global admins can promote to global admin' });
+                return;
+            }
             newRole = 'admin';
             newUniversityId = null;
         }
@@ -83,9 +106,12 @@ router.put('/:id/role', async (req: Request, res: Response) => {
     }
 });
 
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
+        const actorId = req.userId;
+        const actorUniversityId = req.userUniversityId;
+        const isGlobalAdmin = req.isGlobalAdmin;
 
         const userCheck = await query('SELECT role, university_id FROM users WHERE id = $1', [id]);
         if (userCheck.rows.length === 0) {
@@ -94,6 +120,22 @@ router.delete('/:id', async (req: Request, res: Response) => {
         }
 
         const userToDelete = userCheck.rows[0];
+
+        const targetId = Array.isArray(id) ? parseInt(id[0]) : parseInt(id);
+
+        const permission = canManageUser(
+            actorUniversityId ?? null,
+            isGlobalAdmin ?? false,
+            userToDelete.university_id,
+            targetId,
+            actorId ?? 0
+        );
+
+        if (!permission.allowed) {
+            res.status(403).json({ error: permission.error });
+            return;
+        }
+
         if (userToDelete.role === 'admin' && userToDelete.university_id === null) {
             res.status(403).json({ error: 'Cannot delete the global admin' });
             return;

@@ -129,6 +129,117 @@ This starts both frontend and backend concurrently:
 
 ---
 
+## 📖 Step-by-Step Setup Guide
+
+### Prerequisites
+
+1. **Node.js** (v18 or higher) - https://nodejs.org/
+2. **Git** (optional) - https://git-scm.com/
+3. **Supabase Account** (optional) - https://supabase.com/
+
+---
+
+### Step 1: Clone the Repository
+
+```bash
+git clone <repository-url>
+cd U-Nav
+```
+
+Or if you already have the project, skip to Step 2.
+
+---
+
+### Step 2: Install Dependencies
+
+```bash
+npm run install-all
+```
+
+This installs all packages for both Backend and WebDev.
+
+---
+
+### Step 3: Configure Database
+
+The project is pre-configured to use Supabase. The connection details are already in `Backend/.env`:
+
+```
+DB_HOST=aws-1-ap-south-1.pooler.supabase.com
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres.ycqwwflpdrotnvtsdyws
+DB_PASSWORD=********
+DB_SSL=true
+```
+
+**To use your own Supabase instead:**
+1. Create a project at https://supabase.com
+2. Go to **Settings → Database**
+3. Copy the connection string (Pooler mode)
+4. Update `Backend/.env` with your credentials
+
+**To use local PostgreSQL:**
+1. Install PostgreSQL from https://www.postgresql.org/download/
+2. Create a database: `CREATE DATABASE unav_db;`
+3. Update `Backend/.env`:
+   ```
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=unav_db
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_SSL=false
+   ```
+4. Run migrations:
+   ```bash
+   cd Backend
+   npx ts-node src/scripts/runMigrations.ts
+   ```
+
+---
+
+### Step 4: Start the Application
+
+```bash
+npm run dev
+```
+
+Keep this terminal window open. The app runs on:
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:3000
+
+---
+
+### Step 5: Verify It Works
+
+1. Open http://localhost:5173 in your browser
+2. You should see the login page
+3. Try logging in with the default Global Admin:
+   - **Email:** `admin@unav.edu.ph`
+   - **Password:** `GlobalAdmin123`
+
+---
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Can't connect to database | Check `.env` credentials; ensure Supabase project is not paused |
+| Frontend shows "Network error" | Make sure backend is running on port 3000 |
+| "Something went wrong!" on login | Check backend terminal for error logs |
+| Port 3000 or 5173 in use | Stop other services using these ports |
+
+---
+
+### Updating the Code
+
+After making changes:
+1. Frontend updates automatically (hot reload)
+2. Backend: press `Ctrl+C` and run `npm run dev` again
+
+---
+
 ## 📁 Project Structure
 
 ```

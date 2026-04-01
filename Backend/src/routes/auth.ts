@@ -28,9 +28,43 @@ interface UserRow {
     role: string;
 }
 
+const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+    try {
+        return await bcrypt.compare(password, hash);
+    } catch (error) {
+        console.error('Bcrypt compare error:', error);
+        return false;
+    }
+};
+
 const sendError = (res: Response, status: number, message: string) => {
     res.status(status).json({ error: message });
     return;
+};
+
+const createUserResponse = (user: UserRow, isGlobalAdminUser: boolean) => {
+    if (isGlobalAdminUser) {
+        return {
+            message: 'Login successful',
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                university_id: 0,
+                university_name: 'Global Admin',
+                role: 'admin',
+                isGlobalAdmin: true
+            }
+        };
+    }
+    return {
+        message: 'Login successful',
+        user: { id: user.id, email: user.email, username: user.username, university_id: user.university_id, role: user.role }
+    };
+};
+
+const isGlobalAdminUser = (user: UserRow): boolean => {
+    return user.role === 'admin' && user.university_id === null;
 };
 
 const validateSignupInput = (data: SignupRequest): string | null => {
@@ -96,34 +130,49 @@ router.post('/signup', async (req: Request, res: Response) => {
 });
 
 router.post('/login', async (req: Request, res: Response) => {
-    try {
-        const { email, password, university_id }: LoginRequest = req.body;
+    const { email, password, university_id } = req.body;
 
-        if (!email || !password || !university_id) {
-            sendError(res, 400, 'Missing email, password, or university_id');
-            return;
+    if (!email || !password || university_id === undefined) {
+        return res.status(400).json({ error: 'Missing email, password, or university_id' });
+    }
+
+    try {
+        console.log('Attempting login for:', email);
+        
+        let userResult;
+        try {
+            userResult = await query(
+                'SELECT id, email, username, university_id, password_hash, role FROM users WHERE email = $1',
+                [email]
+            );
+            console.log('Query successful, users found:', userResult.rows.length);
+        } catch (queryError) {
+            console.error('Database query error:', queryError);
+            return res.status(500).json({ error: 'Database query failed', details: (queryError as Error).message });
         }
 
-        const userResult = await query(
-            'SELECT id, email, username, university_id, password_hash, role FROM users WHERE email = $1',
-            [email]
-        );
-
         if (userResult.rows.length === 0) {
-            sendError(res, 401, 'Invalid credentials');
-            return;
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const user = userResult.rows[0] as UserRow;
+        console.log('User role:', user.role, 'university_id:', user.university_id);
 
         if (user.role === 'admin' && user.university_id === null) {
-            const isValid = await bcrypt.compare(password, user.password_hash);
+            let isValid = false;
+            try {
+                isValid = await bcrypt.compare(password, user.password_hash);
+                console.log('Password valid:', isValid);
+            } catch (bcryptError) {
+                console.error('Bcrypt compare error:', bcryptError);
+                return res.status(500).json({ error: 'Password verification failed', details: (bcryptError as Error).message });
+            }
+            
             if (!isValid) {
-                sendError(res, 401, 'Invalid credentials');
-                return;
+                return res.status(401).json({ error: 'Invalid credentials' });
             }
 
-            res.json({
+            return res.json({
                 message: 'Login successful',
                 user: {
                     id: user.id,
@@ -135,27 +184,34 @@ router.post('/login', async (req: Request, res: Response) => {
                     isGlobalAdmin: true
                 }
             });
-            return;
         }
 
         if (user.university_id !== null && user.university_id !== university_id) {
-            sendError(res, 401, 'Invalid credentials');
-            return;
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const isValid = await bcrypt.compare(password, user.password_hash);
+        let isValid = false;
+        try {
+            isValid = await bcrypt.compare(password, user.password_hash);
+        } catch (bcryptError) {
+            console.error('Bcrypt compare error:', bcryptError);
+            return res.status(500).json({ error: 'Password verification failed', details: (bcryptError as Error).message });
+        }
+        
         if (!isValid) {
-            sendError(res, 401, 'Invalid credentials');
-            return;
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        res.json({
+        return res.json({
             message: 'Login successful',
             user: { id: user.id, email: user.email, username: user.username, university_id: user.university_id, role: user.role }
         });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error('Login error stack:', err.stack);
+        console.error('Login error message:', err.message);
+        console.error('Full error object:', error);
+        return res.status(500).json({ error: 'Something went wrong!', details: err.message });
     }
 });
 

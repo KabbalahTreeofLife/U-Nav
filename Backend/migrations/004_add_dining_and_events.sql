@@ -105,15 +105,15 @@ FROM universities u WHERE u.name = 'Western Institute of Technology';
 -- ISATU Dining Locations
 INSERT INTO dining_locations (university_id, name, type, building, floor, operating_hours, price_range, cuisine, rating, coordinates_x, coordinates_y) 
 SELECT u.id, 'ISATU Main Cafeteria', 'restaurant', 'Admin Building', 1, '7:00 AM - 8:00 PM', '$', ARRAY['Filipino', 'Asian', 'Snacks'], 4.1, 0, 0
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 INSERT INTO dining_locations (university_id, name, type, building, floor, operating_hours, price_range, cuisine, rating, coordinates_x, coordinates_y) 
 SELECT u.id, 'ISATU Tech Cafe', 'cafe', 'Engineering Building', 1, '6:30 AM - 9:00 PM', '$$', ARRAY['Coffee', 'Pastries', 'Light Meals'], 4.3, 8, -3
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 INSERT INTO dining_locations (university_id, name, type, building, floor, operating_hours, price_range, cuisine, rating, coordinates_x, coordinates_y) 
-SELECT u.id, 'Resource Center Snack Bar', 'snack', 'Resource Center', 1, '8:00 AM - 6:00 PM', '$', ARRAY['Snacks', 'Beverages', 'Sandwiches'], 3.9, -6, 5
-FROM universities u WHERE u.name = 'ISATU';
+SELECT u.id, 'ISATU Resource Center Snack Bar', 'snack', 'Resource Center', 1, '8:00 AM - 6:00 PM', '$', ARRAY['Snacks', 'Beverages', 'Sandwiches'], 3.9, -6, 5
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 -- ============================================
 -- Sample Data: Events for all universities
@@ -180,18 +180,18 @@ INSERT INTO events (university_id, title, description, room, date, time, organiz
 SELECT u.id, 'Robotics Competition', 'Student robotics teams compete in engineering challenges.', 'Research Center - Lab', '2026-05-02', '9:00 AM - 6:00 PM', 'Robotics Club', 'sports'
 FROM universities u WHERE u.name = 'Western Institute of Technology';
 
--- ISATU Events
+-- Institute of Science and Technology University Events
 INSERT INTO events (university_id, title, description, room, date, time, organizer, category)
 SELECT u.id, 'Tech Innovation Summit', 'Showcase of latest technological innovations and student projects.', 'Engineering Building - Auditorium', '2026-04-18', '9:00 AM - 4:00 PM', 'College of Engineering', 'academic'
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 INSERT INTO events (university_id, title, description, room, date, time, organizer, category)
-SELECT u.id, 'ISATU Sports Day', 'Inter-department sports competition.', 'Sports Complex', '2026-04-22', '1:00 PM - 6:00 PM', 'Athletics Department', 'sports'
-FROM universities u WHERE u.name = 'ISATU';
+SELECT u.id, 'ISTU Sports Day', 'Inter-department sports competition.', 'Sports Complex', '2026-04-22', '1:00 PM - 6:00 PM', 'Athletics Department', 'sports'
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 INSERT INTO events (university_id, title, description, room, date, time, organizer, category)
 SELECT u.id, 'Science Expo 2026', 'Exhibition of scientific research and innovations.', 'Resource Center - Main Hall', '2026-05-05', '10:00 AM - 5:00 PM', 'College of Science', 'academic'
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 -- ============================================
 -- Verification Queries

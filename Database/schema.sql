@@ -101,7 +101,7 @@ INSERT INTO universities (name, email_domain) VALUES
     ('University of the Philippines - Visayas', 'upv.edu.ph'),
     ('West Visayas State University', 'wvsu.edu.ph'),
     ('Western Institute of Technology', 'wit.edu.ph'),
-    ('ISATU', 'isatu.edu.ph');
+    ('Institute of Science and Technology University', 'isatu.edu.ph');
 
 -- ============================================
 -- Sample Data: Dining Locations
@@ -139,7 +139,7 @@ FROM universities u WHERE u.name = 'Western Institute of Technology';
 -- ISATU Dining Locations
 INSERT INTO dining_locations (university_id, name, type, building, floor, operating_hours, price_range, cuisine, rating, coordinates_x, coordinates_y) 
 SELECT u.id, 'ISATU Main Cafeteria', 'restaurant', 'Admin Building', 1, '7:00 AM - 8:00 PM', '$', ARRAY['Filipino', 'Asian', 'Snacks'], 4.1, 0, 0
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';
 
 -- ============================================
 -- Sample Data: Events
@@ -174,7 +174,7 @@ INSERT INTO events (university_id, title, description, room, date, time, organiz
 SELECT u.id, 'Tech Conference 2026', 'Annual technology conference featuring industry speakers.', 'Technology Building - Main Auditorium', '2026-04-19', '8:30 AM - 4:30 PM', 'Engineering Department', 'academic'
 FROM universities u WHERE u.name = 'Western Institute of Technology';
 
--- ISATU Events
+-- Institute of Science and Technology University Events
 INSERT INTO events (university_id, title, description, room, date, time, organizer, category)
 SELECT u.id, 'Tech Innovation Summit', 'Showcase of latest technological innovations and student projects.', 'Engineering Building - Auditorium', '2026-04-18', '9:00 AM - 4:00 PM', 'College of Engineering', 'academic'
-FROM universities u WHERE u.name = 'ISATU';
+FROM universities u WHERE u.name = 'Institute of Science and Technology University';

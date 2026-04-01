@@ -141,7 +141,7 @@ export const UNIVERSITY_MAPS: UniversityMap[] = [
     },
     {
         id: 6,
-        name: 'ISATU',
+        name: 'Institute of Science and Technology University',
         glbFile: '',
         config: DEFAULT_MAP_CONFIG,
         buildings: [],

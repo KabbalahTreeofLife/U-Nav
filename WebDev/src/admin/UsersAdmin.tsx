@@ -72,19 +72,20 @@ export const UsersAdmin: React.FC = () => {
     return matchesSearch && matchesRole && matchesUniversity;
   });
 
-  const canEditUser = (user: User): boolean => {
-    if (user.isGlobalAdmin) return false;
-    if (user.university_id === null) return false;
-    if (isAdmin && user.university_id !== userUniversityId) return false;
-    return true;
+  const canEditUser = (targetUser: User): boolean => {
+    if (targetUser.isGlobalAdmin) return false;
+    if (targetUser.id === user?.id) return false;
+    if (isGlobalAdmin) return true;
+    if (isAdmin && targetUser.university_id !== userUniversityId) return false;
+    return isAdmin;
   };
 
-  const canDeleteUser = (userToDelete: User): boolean => {
-    if (user?.id === userToDelete.id) return false;
-    if (userToDelete.isGlobalAdmin) return false;
-    if (userToDelete.university_id === null) return false;
-    if (isAdmin && userToDelete.university_id !== userUniversityId) return false;
-    return true;
+  const canDeleteUser = (targetUser: User): boolean => {
+    if (user?.id === targetUser.id) return false;
+    if (targetUser.isGlobalAdmin) return false;
+    if (isGlobalAdmin) return true;
+    if (isAdmin && targetUser.university_id !== userUniversityId) return false;
+    return isAdmin;
   };
 
   const handleEditClick = (user: User) => {
@@ -96,10 +97,12 @@ export const UsersAdmin: React.FC = () => {
     if (!showEditModal) return;
     
     setActionLoading(true);
-    const result = await usersApi.updateUserRole(showEditModal.id, {
-      role: editRole,
-      university_id: userUniversityId,
-    });
+    const payload: { role: UserRole; university_id?: number | null } = { role: editRole };
+    if (editRole === 'global') {
+      payload.university_id = null;
+    }
+    
+    const result = await usersApi.updateUserRole(showEditModal.id, payload, user?.id || 0);
     
     if (result.success) {
       await loadUsers();
@@ -114,7 +117,7 @@ export const UsersAdmin: React.FC = () => {
     if (!showDeleteConfirm) return;
     
     setActionLoading(true);
-    const result = await usersApi.deleteUser(showDeleteConfirm.id);
+    const result = await usersApi.deleteUser(showDeleteConfirm.id, user?.id || 0);
     
     if (result.success) {
       await loadUsers();

@@ -45,7 +45,7 @@ export const UNIVERSITY_INFO: { [key: number]: UniversityInfo } = {
     6: {
         id: 6,
         name: 'Institute of Science and Technology University',
-        description: 'ISATU is at the forefront of science and technology education. Our navigation system showcases our modern facilities and research centers.',
+        description: 'Institute of Science and Technology University is at the forefront of science and technology education. Our navigation system showcases our modern facilities and research centers.',
         website: 'isatu.edu.ph',
         email: 'info@isatu.edu.ph'
     }

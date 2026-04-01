@@ -66,23 +66,34 @@ export const eventsApi = {
         return { success: false, error: result.error || 'Failed to fetch event' };
     },
 
-    createEvent: async (event: CreateEventRequest): Promise<ResponseResult<Event>> => {
-        const result = await apiClient.post<EventsResponse>(API_ENDPOINTS.EVENTS.CREATE, event);
+    createEvent: async (event: CreateEventRequest, userId: number): Promise<ResponseResult<Event>> => {
+        const result = await apiClient.post<EventsResponse>(
+            API_ENDPOINTS.EVENTS.CREATE, 
+            event,
+            { headers: { 'x-user-id': userId.toString() } }
+        );
         if (result.success && result.data) {
             return { success: true, data: result.data.data?.event };
         }
         return { success: false, error: result.error || 'Failed to create event' };
     },
 
-    updateEvent: async (id: number, event: UpdateEventRequest): Promise<ResponseResult<Event>> => {
-        const result = await apiClient.put<EventsResponse>(API_ENDPOINTS.EVENTS.UPDATE(id), event);
+    updateEvent: async (id: number, event: UpdateEventRequest, userId: number): Promise<ResponseResult<Event>> => {
+        const result = await apiClient.put<EventsResponse>(
+            API_ENDPOINTS.EVENTS.UPDATE(id), 
+            event,
+            { headers: { 'x-user-id': userId.toString() } }
+        );
         if (result.success && result.data) {
             return { success: true, data: result.data.data?.event };
         }
         return { success: false, error: result.error || 'Failed to update event' };
     },
 
-    deleteEvent: async (id: number): Promise<ResponseResult<void>> => {
-        return apiClient.delete<void>(API_ENDPOINTS.EVENTS.DELETE(id));
+    deleteEvent: async (id: number, userId: number): Promise<ResponseResult<void>> => {
+        return apiClient.delete<void>(
+            API_ENDPOINTS.EVENTS.DELETE(id),
+            { headers: { 'x-user-id': userId.toString() } }
+        );
     },
 };
