@@ -5,6 +5,8 @@ export const API_ENDPOINTS = {
         LOGIN: `${API_BASE_URL}/auth/login`,
         SIGNUP: `${API_BASE_URL}/auth/signup`,
         UNIVERSITIES: `${API_BASE_URL}/auth/universities`,
+        CREATE_UNIVERSITY: `${API_BASE_URL}/auth/universities`,
+        DELETE_UNIVERSITY: (id: number) => `${API_BASE_URL}/auth/universities/${id}`,
     },
     USERS: {
         LIST: `${API_BASE_URL}/users`,

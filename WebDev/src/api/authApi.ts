@@ -1,44 +1,47 @@
 import { API_ENDPOINTS } from './config';
-import type { LoginRequest, SignupRequest, AuthResponse, UniversitiesResponse } from './types';
-import { handleResponse, type ResponseResult } from './responseHelper';
+import { apiClient } from './client';
+import type { ResponseResult } from './responseTypes';
+
+export interface University {
+    id: number;
+    name: string;
+    email_domain: string;
+}
+
+interface UniversitiesResponse {
+    universities: University[];
+}
+
+interface CreateUniversityResponse {
+    message: string;
+    university: University;
+}
 
 export const authApi = {
-    async login(credentials: LoginRequest): Promise<ResponseResult<AuthResponse>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials),
-            });
-            return handleResponse<AuthResponse>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
+    async login(credentials: { email: string; password: string; university_id: number }): Promise<ResponseResult<{ user: unknown }>> {
+        return apiClient.post<{ user: unknown }>(API_ENDPOINTS.AUTH.LOGIN, credentials);
     },
 
-    async signup(userData: SignupRequest): Promise<ResponseResult<AuthResponse>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.AUTH.SIGNUP, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-            });
-            return handleResponse<AuthResponse>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
+    async signup(userData: { university_id: number; email: string; username?: string; password: string }): Promise<ResponseResult<{ user: unknown }>> {
+        return apiClient.post<{ user: unknown }>(API_ENDPOINTS.AUTH.SIGNUP, userData);
     },
 
     async getUniversities(): Promise<ResponseResult<UniversitiesResponse>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.AUTH.UNIVERSITIES);
-            return handleResponse<UniversitiesResponse>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
+        return apiClient.get<UniversitiesResponse>(API_ENDPOINTS.AUTH.UNIVERSITIES);
+    },
+
+    async createUniversity(data: { name: string; email_domain: string }, userId: number): Promise<ResponseResult<CreateUniversityResponse>> {
+        return apiClient.post<CreateUniversityResponse>(
+            API_ENDPOINTS.AUTH.CREATE_UNIVERSITY,
+            data,
+            { headers: { 'x-user-id': userId.toString() } }
+        );
+    },
+
+    async deleteUniversity(id: number, userId: number): Promise<ResponseResult<{ message: string }>> {
+        return apiClient.delete<{ message: string }>(
+            API_ENDPOINTS.AUTH.DELETE_UNIVERSITY(id),
+            { headers: { 'x-user-id': userId.toString() } }
+        );
     },
 };

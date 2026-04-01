@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
+import { mapUserRow } from '../utils/mappers';
 
 const router = Router();
 
@@ -14,7 +15,8 @@ const USER_RETURN_QUERY = 'RETURNING id, email, username, university_id, role';
 router.get('/', async (_req: Request, res: Response) => {
     try {
         const result = await query(`${USER_SELECT_QUERY} ORDER BY u.created_at DESC`);
-        res.json({ users: result.rows });
+        const users = result.rows.map((row) => mapUserRow(row));
+        res.json({ users });
     } catch (error) {
         console.error('Get users error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -31,7 +33,8 @@ router.get('/:id', async (req: Request, res: Response) => {
             return;
         }
 
-        res.json({ user: result.rows[0] });
+        const user = mapUserRow(result.rows[0]);
+        res.json({ user });
     } catch (error) {
         console.error('Get user error:', error);
         res.status(500).json({ error: 'Internal server error' });

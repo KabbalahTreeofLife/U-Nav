@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from './config';
-import type { ResponseResult } from './responseHelper';
+import { apiClient } from './client';
+import type { ResponseResult } from './responseTypes';
 
 export interface Event {
     id: string;
@@ -35,97 +36,53 @@ export interface UpdateEventRequest {
     category?: Event['category'];
 }
 
+interface EventsResponse {
+    success: boolean;
+    data?: {
+        events?: Event[];
+        event?: Event;
+    };
+    error?: string;
+}
+
 export const eventsApi = {
     getEvents: async (universityId?: number): Promise<ResponseResult<Event[]>> => {
-        try {
-            const url = universityId 
-                ? `${API_ENDPOINTS.EVENTS.LIST}?university_id=${universityId}`
-                : API_ENDPOINTS.EVENTS.LIST;
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.events || [] };
-        } catch (error) {
-            return { success: false, error: 'Failed to fetch events' };
+        const url = universityId 
+            ? `${API_ENDPOINTS.EVENTS.LIST}?university_id=${universityId}`
+            : API_ENDPOINTS.EVENTS.LIST;
+        
+        const result = await apiClient.get<EventsResponse>(url);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.events || [] };
         }
+        return { success: false, error: result.error || 'Failed to fetch events' };
     },
 
     getEvent: async (id: number): Promise<ResponseResult<Event>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.EVENTS.GET(id));
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.event };
-        } catch (error) {
-            return { success: false, error: 'Failed to fetch event' };
+        const result = await apiClient.get<EventsResponse>(API_ENDPOINTS.EVENTS.GET(id));
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.event };
         }
+        return { success: false, error: result.error || 'Failed to fetch event' };
     },
 
     createEvent: async (event: CreateEventRequest): Promise<ResponseResult<Event>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.EVENTS.CREATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.event };
-        } catch (error) {
-            return { success: false, error: 'Failed to create event' };
+        const result = await apiClient.post<EventsResponse>(API_ENDPOINTS.EVENTS.CREATE, event);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.event };
         }
+        return { success: false, error: result.error || 'Failed to create event' };
     },
 
     updateEvent: async (id: number, event: UpdateEventRequest): Promise<ResponseResult<Event>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.EVENTS.UPDATE(id), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.event };
-        } catch (error) {
-            return { success: false, error: 'Failed to update event' };
+        const result = await apiClient.put<EventsResponse>(API_ENDPOINTS.EVENTS.UPDATE(id), event);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.event };
         }
+        return { success: false, error: result.error || 'Failed to update event' };
     },
 
     deleteEvent: async (id: number): Promise<ResponseResult<void>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.EVENTS.DELETE(id), {
-                method: 'DELETE',
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            return { success: true, data: undefined };
-        } catch (error) {
-            return { success: false, error: 'Failed to delete event' };
-        }
+        return apiClient.delete<void>(API_ENDPOINTS.EVENTS.DELETE(id));
     },
 };

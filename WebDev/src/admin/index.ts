@@ -3,3 +3,4 @@ export { AdminDashboard } from './AdminDashboard';
 export { DiningAdmin } from './DiningAdmin';
 export { EventsAdmin } from './EventsAdmin';
 export { UsersAdmin } from './UsersAdmin';
+export { UniversitiesAdmin } from './UniversitiesAdmin';

@@ -1,25 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
+import { mapDiningRow } from '../utils/mappers';
 
 const router = Router();
-
-interface DiningLocation {
-    id: number;
-    university_id: number;
-    name: string;
-    type: string;
-    building: string;
-    floor: number;
-    operating_hours: string;
-    price_range: string;
-    cuisine: string[];
-    rating: number;
-    image_url?: string;
-    coordinates_x?: number;
-    coordinates_y?: number;
-    created_at: string;
-    updated_at: string;
-}
 
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -37,23 +20,7 @@ router.get('/', async (req: Request, res: Response) => {
         
         const result = await query(sql, params);
         
-        const locations = result.rows.map((row: DiningLocation) => ({
-            id: `db-${row.id}`,
-            name: row.name,
-            type: row.type,
-            building: row.building,
-            floor: row.floor,
-            operatingHours: row.operating_hours,
-            priceRange: row.price_range,
-            cuisine: row.cuisine || [],
-            rating: typeof row.rating === 'string' ? parseFloat(row.rating) : row.rating || 4.0,
-            imageUrl: row.image_url,
-            coordinates: row.coordinates_x !== null && row.coordinates_y !== null 
-                ? { x: row.coordinates_x, y: row.coordinates_y }
-                : undefined,
-            universityId: row.university_id,
-            isFromDb: true,
-        }));
+        const locations = result.rows.map((row) => mapDiningRow(row));
         
         res.json({ success: true, data: { locations } });
     } catch (error) {
@@ -71,24 +38,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Dining location not found' });
         }
         
-        const row = result.rows[0] as DiningLocation;
-        const location = {
-            id: `db-${row.id}`,
-            name: row.name,
-            type: row.type,
-            building: row.building,
-            floor: row.floor,
-            operatingHours: row.operating_hours,
-            priceRange: row.price_range,
-            cuisine: row.cuisine || [],
-            rating: typeof row.rating === 'string' ? parseFloat(row.rating) : row.rating || 4.0,
-            imageUrl: row.image_url,
-            coordinates: row.coordinates_x !== null && row.coordinates_y !== null 
-                ? { x: row.coordinates_x, y: row.coordinates_y }
-                : undefined,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.json({ success: true, data: { location } });
     } catch (error) {
@@ -126,24 +76,7 @@ router.post('/', async (req: Request, res: Response) => {
             ]
         );
         
-        const row = result.rows[0] as DiningLocation;
-        const location = {
-            id: `db-${row.id}`,
-            name: row.name,
-            type: row.type,
-            building: row.building,
-            floor: row.floor,
-            operatingHours: row.operating_hours,
-            priceRange: row.price_range,
-            cuisine: row.cuisine || [],
-            rating: typeof row.rating === 'string' ? parseFloat(row.rating) : row.rating || 4.0,
-            imageUrl: row.image_url,
-            coordinates: row.coordinates_x !== null && row.coordinates_y !== null 
-                ? { x: row.coordinates_x, y: row.coordinates_y }
-                : undefined,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.status(201).json({ success: true, data: { location } });
     } catch (error) {
@@ -180,24 +113,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Dining location not found' });
         }
         
-        const row = result.rows[0] as DiningLocation;
-        const location = {
-            id: `db-${row.id}`,
-            name: row.name,
-            type: row.type,
-            building: row.building,
-            floor: row.floor,
-            operatingHours: row.operating_hours,
-            priceRange: row.price_range,
-            cuisine: row.cuisine || [],
-            rating: typeof row.rating === 'string' ? parseFloat(row.rating) : row.rating || 4.0,
-            imageUrl: row.image_url,
-            coordinates: row.coordinates_x !== null && row.coordinates_y !== null 
-                ? { x: row.coordinates_x, y: row.coordinates_y }
-                : undefined,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.json({ success: true, data: { location } });
     } catch (error) {

@@ -1,49 +1,15 @@
 import { API_ENDPOINTS } from './config';
+import { apiClient } from './client';
 import type { UsersResponse, User, UpdateRoleRequest } from './types';
-import { handleResponse, type ResponseResult } from './responseHelper';
 
 export const usersApi = {
-    async getUsers(): Promise<ResponseResult<UsersResponse>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.USERS.LIST);
-            return handleResponse<UsersResponse>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
-    },
+    getUsers: async () => apiClient.get<UsersResponse>(API_ENDPOINTS.USERS.LIST),
 
-    async getUser(id: number): Promise<ResponseResult<{ user: User }>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.USERS.GET(id));
-            return handleResponse<{ user: User }>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
-    },
+    getUser: async (id: number) => apiClient.get<{ user: User }>(API_ENDPOINTS.USERS.GET(id)),
 
-    async updateUserRole(id: number, data: UpdateRoleRequest): Promise<ResponseResult<{ user: User }>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.USERS.UPDATE_ROLE(id), {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            return handleResponse<{ user: User }>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
-    },
+    updateUserRole: async (id: number, data: UpdateRoleRequest) => 
+        apiClient.put<{ user: User }>(API_ENDPOINTS.USERS.UPDATE_ROLE(id), data),
 
-    async deleteUser(id: number): Promise<ResponseResult<{ message: string }>> {
-        try {
-            const response = await fetch(API_ENDPOINTS.USERS.DELETE(id), {
-                method: 'DELETE',
-            });
-            return handleResponse<{ message: string }>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
-        }
-    },
+    deleteUser: async (id: number) => 
+        apiClient.delete<{ message: string }>(API_ENDPOINTS.USERS.DELETE(id)),
 };

@@ -9,6 +9,7 @@ export const pool = new Pool({
     database: process.env.DB_NAME || 'unav_db',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'admin',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {

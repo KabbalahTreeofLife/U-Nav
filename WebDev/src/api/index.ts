@@ -15,4 +15,5 @@ export { authApi } from './authApi';
 export { usersApi } from './usersApi';
 export { diningApi, type DiningLocation, type CreateDiningRequest, type UpdateDiningRequest } from './diningApi';
 export { eventsApi, type Event, type CreateEventRequest, type UpdateEventRequest } from './eventsApi';
-export { handleResponse, type ResponseResult } from './responseHelper';
+export { apiClient } from './client';
+export type { ResponseResult } from './responseTypes';

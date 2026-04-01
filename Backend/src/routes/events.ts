@@ -1,21 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
+import { mapEventRow } from '../utils/mappers';
 
 const router = Router();
-
-interface Event {
-    id: number;
-    university_id: number;
-    title: string;
-    description: string;
-    room: string;
-    date: string;
-    time: string;
-    organizer: string;
-    category: string;
-    created_at: string;
-    updated_at: string;
-}
 
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -33,18 +20,7 @@ router.get('/', async (req: Request, res: Response) => {
         
         const result = await query(sql, params);
         
-        const events = result.rows.map((row: Event) => ({
-            id: `db-${row.id}`,
-            title: row.title,
-            description: row.description,
-            room: row.room,
-            date: row.date,
-            time: row.time,
-            organizer: row.organizer,
-            category: row.category,
-            universityId: row.university_id,
-            isFromDb: true,
-        }));
+        const events = result.rows.map((row) => mapEventRow(row as unknown as Record<string, unknown>));
         
         res.json({ success: true, data: { events } });
     } catch (error) {
@@ -62,19 +38,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
         
-        const row = result.rows[0] as Event;
-        const event = {
-            id: `db-${row.id}`,
-            title: row.title,
-            description: row.description,
-            room: row.room,
-            date: row.date,
-            time: row.time,
-            organizer: row.organizer,
-            category: row.category,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.json({ success: true, data: { event } });
     } catch (error) {
@@ -99,19 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
             [universityId, title, description || '', room || '', date, time || '', organizer || '', category || 'academic']
         );
         
-        const row = result.rows[0] as Event;
-        const event = {
-            id: `db-${row.id}`,
-            title: row.title,
-            description: row.description,
-            room: row.room,
-            date: row.date,
-            time: row.time,
-            organizer: row.organizer,
-            category: row.category,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.status(201).json({ success: true, data: { event } });
     } catch (error) {
@@ -144,19 +96,7 @@ router.put('/:id', async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, error: 'Event not found' });
         }
         
-        const row = result.rows[0] as Event;
-        const event = {
-            id: `db-${row.id}`,
-            title: row.title,
-            description: row.description,
-            room: row.room,
-            date: row.date,
-            time: row.time,
-            organizer: row.organizer,
-            category: row.category,
-            universityId: row.university_id,
-            isFromDb: true,
-        };
+        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
         
         res.json({ success: true, data: { event } });
     } catch (error) {

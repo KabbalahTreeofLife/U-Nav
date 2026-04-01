@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from './config';
-import type { ResponseResult } from './responseHelper';
+import { apiClient } from './client';
+import type { ResponseResult } from './responseTypes';
 
 export interface DiningLocation {
     id: string;
@@ -44,97 +45,53 @@ export interface UpdateDiningRequest {
     coordinates?: { x: number; y: number };
 }
 
+interface DiningResponse {
+    success: boolean;
+    data?: {
+        locations?: DiningLocation[];
+        location?: DiningLocation;
+    };
+    error?: string;
+}
+
 export const diningApi = {
     getLocations: async (universityId?: number): Promise<ResponseResult<DiningLocation[]>> => {
-        try {
-            const url = universityId 
-                ? `${API_ENDPOINTS.DINING.LIST}?university_id=${universityId}`
-                : API_ENDPOINTS.DINING.LIST;
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.locations || [] };
-        } catch (error) {
-            return { success: false, error: 'Failed to fetch dining locations' };
+        const url = universityId 
+            ? `${API_ENDPOINTS.DINING.LIST}?university_id=${universityId}`
+            : API_ENDPOINTS.DINING.LIST;
+        
+        const result = await apiClient.get<DiningResponse>(url);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.locations || [] };
         }
+        return { success: false, error: result.error || 'Failed to fetch dining locations' };
     },
 
     getLocation: async (id: number): Promise<ResponseResult<DiningLocation>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.DINING.GET(id));
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.location };
-        } catch (error) {
-            return { success: false, error: 'Failed to fetch dining location' };
+        const result = await apiClient.get<DiningResponse>(API_ENDPOINTS.DINING.GET(id));
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.location };
         }
+        return { success: false, error: result.error || 'Failed to fetch dining location' };
     },
 
     createLocation: async (location: CreateDiningRequest): Promise<ResponseResult<DiningLocation>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.DINING.CREATE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(location),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.location };
-        } catch (error) {
-            return { success: false, error: 'Failed to create dining location' };
+        const result = await apiClient.post<DiningResponse>(API_ENDPOINTS.DINING.CREATE, location);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.location };
         }
+        return { success: false, error: result.error || 'Failed to create dining location' };
     },
 
     updateLocation: async (id: number, location: UpdateDiningRequest): Promise<ResponseResult<DiningLocation>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.DINING.UPDATE(id), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(location),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            const data = await response.json();
-            return { success: true, data: data.data?.location };
-        } catch (error) {
-            return { success: false, error: 'Failed to update dining location' };
+        const result = await apiClient.put<DiningResponse>(API_ENDPOINTS.DINING.UPDATE(id), location);
+        if (result.success && result.data) {
+            return { success: true, data: result.data.data?.location };
         }
+        return { success: false, error: result.error || 'Failed to update dining location' };
     },
 
     deleteLocation: async (id: number): Promise<ResponseResult<void>> => {
-        try {
-            const response = await fetch(API_ENDPOINTS.DINING.DELETE(id), {
-                method: 'DELETE',
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                return { success: false, error: errorData.error };
-            }
-            
-            return { success: true, data: undefined };
-        } catch (error) {
-            return { success: false, error: 'Failed to delete dining location' };
-        }
+        return apiClient.delete<void>(API_ENDPOINTS.DINING.DELETE(id));
     },
 };

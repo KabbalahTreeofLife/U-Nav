@@ -8,7 +8,7 @@ import { DiningView } from './dining/DiningView';
 import { AboutView } from './about/AboutView';
 import { ProtectedRoute } from './common/ProtectedRoute';
 import { ProtectedAdminRoute } from './common/ProtectedAdminRoute';
-import { AdminDashboard, DiningAdmin, EventsAdmin, UsersAdmin } from './admin';
+import { AdminDashboard, DiningAdmin, EventsAdmin, UsersAdmin, UniversitiesAdmin } from './admin';
 
 function App() {
   return (
@@ -59,6 +59,11 @@ function App() {
       <Route path="/admin/users" element={
         <ProtectedAdminRoute>
           <UsersAdmin />
+        </ProtectedAdminRoute>
+      } />
+      <Route path="/admin/universities" element={
+        <ProtectedAdminRoute>
+          <UniversitiesAdmin />
         </ProtectedAdminRoute>
       } />
 

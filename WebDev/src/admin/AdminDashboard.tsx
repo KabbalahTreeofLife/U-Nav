@@ -38,8 +38,21 @@ export const AdminDashboard: React.FC = () => {
 
   const totalDining = diningLocations.length;
   const totalEvents = events.length;
+  const totalUniversities = universities.length;
 
   const stats = [
+    ...(isGlobalAdmin ? [{
+      label: 'Universities',
+      value: totalUniversities,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
+        </svg>
+      ),
+      variant: 'warning' as const,
+      onClick: () => navigate('/admin/universities'),
+    }] : []),
     {
       label: 'Dining Locations',
       value: totalDining,
@@ -65,17 +78,6 @@ export const AdminDashboard: React.FC = () => {
       ),
       variant: 'success' as const,
       onClick: () => navigate('/admin/events'),
-    },
-    {
-      label: 'Universities',
-      value: 6,
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-          <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-        </svg>
-      ),
-      variant: 'warning' as const,
     },
   ];
 

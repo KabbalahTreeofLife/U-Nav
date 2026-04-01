@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { FormValidator } from './FormValidator';
 
 interface UseFormOptions<T extends Record<string, string>> {
@@ -29,6 +29,12 @@ export function useForm<T extends Record<string, string>>({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Set<string>>(new Set());
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const isValid = useMemo(() => {
+        validator.clearErrors();
+        const result = validator.validate(values as Record<string, string>);
+        return result.isValid;
+    }, [validator, values]);
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -89,12 +95,6 @@ export function useForm<T extends Record<string, string>>({
         setTouched(new Set());
         setIsSubmitting(false);
     }, [initialValues]);
-
-    const isValid = (() => {
-        validator.clearErrors();
-        const result = validator.validate(values as Record<string, string>);
-        return result.isValid;
-    })();
 
     return {
         values,
