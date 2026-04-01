@@ -23,7 +23,7 @@ A comprehensive campus navigation system built with React, TypeScript, and Vite.
 - **About Section**: Information about the university and navigation system
 - **User Authentication**: Secure login and signup system
 - **Guest Mode**: Limited view-only access without authentication
-- **Responsive Design**: Works on desktop and mobile devices
+- **Responsive Design**: Works on desktop and mobile devices.
 
 ---
 
