@@ -6,37 +6,99 @@
     padding-top: 70px;
 }
 
-.dining-search {
-    position: relative;
+.dining-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
     padding: 1rem 1.5rem;
     background-color: var(--color-white);
     border-bottom: 1px solid var(--color-border);
 }
 
-.search-input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    font-size: 0.95rem;
-    transition: border-color 0.2s ease;
-    box-sizing: border-box;
+.dining-university-selector {
+    padding: 1rem 1.5rem;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
 }
 
-.search-input:focus {
-    outline: none;
+.dining-university-selector select,
+.dining-university-selector .select-field {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--color-text);
+    background: var(--color-white);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+}
+
+.dining-university-selector select:hover,
+.dining-university-selector .select-field:hover {
     border-color: var(--color-primary);
 }
 
-.search-icon {
-    position: absolute;
-    left: 2.25rem;
-    top: 50%;
-    transform: translateY(-50%);
+.dining-university-selector select:focus,
+.dining-university-selector .select-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.dining-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.dining-search svg {
     width: 18px;
     height: 18px;
     color: var(--color-text-muted);
-    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.dining-search input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    outline: none;
+}
+
+.dining-search input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.dining-controls .dropdown-small {
+    width: 160px;
+    flex-shrink: 0;
+}
+
+.dining-controls .dropdown-small .dropdown-trigger {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.dining-controls .dropdown-small .dropdown-search-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.dining-controls .dropdown-small .dropdown-menu {
+    width: 160px;
 }
 
 .dining-filters {

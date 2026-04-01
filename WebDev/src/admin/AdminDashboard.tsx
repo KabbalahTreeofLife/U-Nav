@@ -1,30 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from './AdminLayout';
-import { getDiningByUniversity } from '../dining/data';
-import { getEventsByUniversity } from '../map/data';
+import { diningApi, eventsApi } from '../api';
 import { useAuth, useUniversities } from '../common';
-
-const ALL_UNIVERSITY_IDS = [1, 2, 3, 4, 5, 6];
+import { UniversityDropdownSelect } from '../common/UniversityDropdownSelect';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { universityId, user, isGlobalAdmin } = useAuth();
   const { universities } = useUniversities();
-  const [selectedUniversityId, setSelectedUniversityId] = useState<number>(universityId || 1);
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
+  const [diningLocations, setDiningLocations] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
 
   const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : universityId;
-  
-  const diningLocations = effectiveUniversityId ? getDiningByUniversity(effectiveUniversityId) : [];
-  const events = effectiveUniversityId ? getEventsByUniversity(effectiveUniversityId) : [];
+  const isAllUniversities = effectiveUniversityId === 0;
 
-  const totalDining = isGlobalAdmin 
-    ? ALL_UNIVERSITY_IDS.reduce((sum, id) => sum + getDiningByUniversity(id).length, 0)
-    : diningLocations.length;
-  
-  const totalEvents = isGlobalAdmin
-    ? ALL_UNIVERSITY_IDS.reduce((sum, id) => sum + getEventsByUniversity(id).length, 0)
-    : events.length;
+  useEffect(() => {
+    const fetchData = async () => {
+      const uniId = isAllUniversities ? undefined : (effectiveUniversityId || undefined);
+      
+      const [diningResult, eventsResult] = await Promise.all([
+        diningApi.getLocations(uniId),
+        eventsApi.getEvents(uniId),
+      ]);
+      
+      if (diningResult.success && diningResult.data) {
+        setDiningLocations(diningResult.data);
+      }
+      if (eventsResult.success && eventsResult.data) {
+        setEvents(eventsResult.data);
+      }
+    };
+    
+    fetchData();
+  }, [selectedUniversityId, universityId, isGlobalAdmin]);
+
+  const totalDining = diningLocations.length;
+  const totalEvents = events.length;
 
   const stats = [
     {
@@ -74,23 +87,14 @@ export const AdminDashboard: React.FC = () => {
           <p>{isGlobalAdmin ? 'Manage all universities' : 'Manage your university'}</p>
         </div>
         {isGlobalAdmin && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Viewing:</label>
-            <select
+          <div className="university-selector">
+            <span className="selector-label">Viewing:</span>
+            <UniversityDropdownSelect
               value={selectedUniversityId}
-              onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
-              style={{
-                padding: '0.5rem 0.75rem',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.875rem',
-                background: 'white',
-              }}
-            >
-              {universities.map((uni) => (
-                <option key={uni.id} value={uni.id}>{uni.name}</option>
-              ))}
-            </select>
+              onChange={setSelectedUniversityId}
+              universities={[{ id: 0, name: 'All Universities', email_domain: '' }, ...universities]}
+              className="admin-dropdown"
+            />
           </div>
         )}
       </div>

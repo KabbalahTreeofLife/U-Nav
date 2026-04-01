@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from './AdminLayout';
-import type { DiningLocation } from '../dining/data';
+import { diningApi, type DiningLocation } from '../api';
+import { useAuth, useUniversities } from '../common';
+import { UniversityDropdownSelect } from '../common/UniversityDropdownSelect';
 
 type DiningType = DiningLocation['type'];
 type PriceRange = DiningLocation['priceRange'];
@@ -28,6 +30,7 @@ interface DiningFormData {
   cuisine: string;
   rating: string;
   imageUrl: string;
+  universityId: number;
 }
 
 const initialFormData: DiningFormData = {
@@ -40,45 +43,62 @@ const initialFormData: DiningFormData = {
   cuisine: '',
   rating: '4.0',
   imageUrl: '',
-};
-
-const loadDiningLocations = (): DiningLocation[] => {
-  try {
-    const stored = localStorage.getItem('admin_dining_locations');
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveDiningLocations = (locations: DiningLocation[]) => {
-  localStorage.setItem('admin_dining_locations', JSON.stringify(locations));
+  universityId: 1,
 };
 
 export const DiningAdmin: React.FC = () => {
-  const [locations, setLocations] = useState<DiningLocation[]>(loadDiningLocations);
+  const { universityId: userUniversityId, isGlobalAdmin } = useAuth();
+  const { universities } = useUniversities();
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
+  const [locations, setLocations] = useState<DiningLocation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<DiningType | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDbId, setEditingDbId] = useState<number | null>(null);
   const [formData, setFormData] = useState<DiningFormData>(initialFormData);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchLocations = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    const uniId = isGlobalAdmin ? selectedUniversityId : (userUniversityId || 1);
+    const result = await diningApi.getLocations(uniId === 0 ? undefined : uniId);
+    
+    if (result.success && result.data) {
+      setLocations(result.data);
+      setError(null);
+    } else {
+      setError('error' in result ? result.error : 'Failed to fetch dining locations');
+    }
+    setLoading(false);
+  }, [selectedUniversityId, userUniversityId, isGlobalAdmin]);
 
   useEffect(() => {
-    saveDiningLocations(locations);
-  }, [locations]);
+    fetchLocations();
+  }, [fetchLocations]);
 
   const filteredLocations = locations.filter((loc) => {
     const matchesSearch =
       loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       loc.building.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || loc.type === filterType;
-    return matchesSearch && matchesType;
+    const locUniversityId = loc.universityId || 1;
+    const matchesUniversity = selectedUniversityId === 0 || locUniversityId === selectedUniversityId;
+    return matchesSearch && matchesType && matchesUniversity;
   });
 
   const openAddModal = () => {
-    setFormData(initialFormData);
+    const defaultUniversityId = isGlobalAdmin 
+      ? (selectedUniversityId || userUniversityId || 1)
+      : (userUniversityId || 1);
+    setFormData({ ...initialFormData, universityId: defaultUniversityId });
     setEditingId(null);
+    setEditingDbId(null);
     setIsModalOpen(true);
   };
 
@@ -93,64 +113,108 @@ export const DiningAdmin: React.FC = () => {
       cuisine: location.cuisine.join(', '),
       rating: location.rating.toString(),
       imageUrl: location.imageUrl || '',
+      universityId: location.universityId || 1,
     });
     setEditingId(location.id);
+    setEditingDbId(location.isFromDb ? parseInt(location.id.replace('db-', '')) : null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+    setEditingDbId(null);
     setFormData(initialFormData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionLoading(true);
+    
     const cuisineArray = formData.cuisine
       .split(',')
       .map((c) => c.trim())
       .filter((c) => c);
 
-    if (editingId) {
-      setLocations((prev) =>
-        prev.map((loc) =>
-          loc.id === editingId
-            ? {
-                ...loc,
-                name: formData.name,
-                type: formData.type,
-                building: formData.building,
-                floor: parseInt(formData.floor),
-                operatingHours: formData.operatingHours,
-                priceRange: formData.priceRange,
-                cuisine: cuisineArray,
-                rating: parseFloat(formData.rating),
-                imageUrl: formData.imageUrl || undefined,
-              }
-            : loc
-        )
-      );
-    } else {
-      const newLocation: DiningLocation = {
-        id: `dining-${Date.now()}`,
-        name: formData.name,
-        type: formData.type,
-        building: formData.building,
-        floor: parseInt(formData.floor),
-        operatingHours: formData.operatingHours,
-        priceRange: formData.priceRange,
-        cuisine: cuisineArray,
-        rating: parseFloat(formData.rating),
-        imageUrl: formData.imageUrl || undefined,
-      };
-      setLocations((prev) => [...prev, newLocation]);
+    try {
+      if (editingId) {
+        const updateData = {
+          name: formData.name,
+          type: formData.type,
+          building: formData.building,
+          floor: parseInt(formData.floor),
+          operatingHours: formData.operatingHours,
+          priceRange: formData.priceRange,
+          cuisine: cuisineArray,
+          rating: parseFloat(formData.rating),
+          imageUrl: formData.imageUrl || undefined,
+        };
+
+        if (editingDbId) {
+          const result = await diningApi.updateLocation(editingDbId, updateData);
+          if (result.success) {
+            await fetchLocations();
+          } else {
+            alert(result.error);
+            setActionLoading(false);
+            return;
+          }
+        } else {
+          setLocations((prev) =>
+            prev.map((loc) =>
+              loc.id === editingId
+                ? { ...loc, ...updateData }
+                : loc
+            )
+          );
+        }
+      } else {
+        const createData = {
+          universityId: formData.universityId,
+          name: formData.name,
+          type: formData.type,
+          building: formData.building,
+          floor: parseInt(formData.floor),
+          operatingHours: formData.operatingHours,
+          priceRange: formData.priceRange,
+          cuisine: cuisineArray,
+          rating: parseFloat(formData.rating),
+          imageUrl: formData.imageUrl || undefined,
+        };
+
+        const result = await diningApi.createLocation(createData);
+        if (result.success) {
+          await fetchLocations();
+        } else {
+          alert(result.error);
+          setActionLoading(false);
+          return;
+        }
+      }
+      closeModal();
+    } catch (err) {
+      console.error('Error saving dining location:', err);
     }
-    closeModal();
+    setActionLoading(false);
   };
 
-  const handleDelete = (id: string) => {
-    setLocations((prev) => prev.filter((loc) => loc.id !== id));
+  const handleDelete = async (id: string, isFromDb: boolean) => {
+    setActionLoading(true);
+    
+    if (isFromDb) {
+      const dbId = parseInt(id.replace('db-', ''));
+      const result = await diningApi.deleteLocation(dbId);
+      if (result.success) {
+        await fetchLocations();
+      } else {
+        alert(result.error);
+      }
+    } else {
+      setLocations((prev) => prev.filter((loc) => loc.id !== id));
+    }
+    
     setShowDeleteConfirm(null);
+    setActionLoading(false);
   };
 
   return (
@@ -160,9 +224,18 @@ export const DiningAdmin: React.FC = () => {
           <h1>Dining Locations</h1>
           <p>Manage dining options for your university</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          + Add Location
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {isGlobalAdmin && (
+            <UniversityDropdownSelect
+              value={selectedUniversityId}
+              onChange={setSelectedUniversityId}
+              universities={universities}
+            />
+          )}
+          <button className="btn btn-primary" onClick={openAddModal}>
+            + Add Location
+          </button>
+        </div>
       </div>
 
       <div className="admin-content-card">
@@ -204,7 +277,16 @@ export const DiningAdmin: React.FC = () => {
           </div>
         </div>
 
-        {filteredLocations.length > 0 ? (
+        {loading ? (
+          <div className="admin-empty-state">
+            <p>Loading...</p>
+          </div>
+        ) : error ? (
+          <div className="admin-empty-state" style={{ color: 'var(--color-error)' }}>
+            <p>{error}</p>
+            <button className="btn btn-outline" onClick={fetchLocations}>Retry</button>
+          </div>
+        ) : filteredLocations.length > 0 ? (
           <table className="admin-table">
             <thead>
               <tr>
@@ -293,6 +375,28 @@ export const DiningAdmin: React.FC = () => {
                     required
                     placeholder="e.g., Campus Coffee Shop"
                   />
+                </div>
+
+                <div className="admin-form-group">
+                  <label>University *</label>
+                  {isGlobalAdmin ? (
+                    <select
+                      value={formData.universityId}
+                      onChange={(e) => setFormData({ ...formData, universityId: Number(e.target.value) })}
+                      required
+                    >
+                      {universities.map((uni) => (
+                        <option key={uni.id} value={uni.id}>{uni.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={universities.find(u => u.id === userUniversityId)?.name || 'Your University'}
+                      disabled
+                      style={{ backgroundColor: 'var(--color-bg)', cursor: 'not-allowed' }}
+                    />
+                  )}
                 </div>
 
                 <div className="admin-form-row">
@@ -398,8 +502,8 @@ export const DiningAdmin: React.FC = () => {
                 <button type="button" className="btn btn-outline" onClick={closeModal}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingId ? 'Update' : 'Add'} Location
+                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                  {actionLoading ? 'Saving...' : (editingId ? 'Update' : 'Add')} Location
                 </button>
               </div>
             </form>
@@ -426,8 +530,13 @@ export const DiningAdmin: React.FC = () => {
               <button className="btn btn-outline" onClick={() => setShowDeleteConfirm(null)}>
                 Cancel
               </button>
-              <button className="btn" style={{ background: 'var(--color-error)', color: 'white' }} onClick={() => handleDelete(showDeleteConfirm)}>
-                Delete
+              <button 
+                className="btn" 
+                style={{ background: 'var(--color-error)', color: 'white' }} 
+                onClick={() => handleDelete(showDeleteConfirm, showDeleteConfirm.startsWith('db-'))}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

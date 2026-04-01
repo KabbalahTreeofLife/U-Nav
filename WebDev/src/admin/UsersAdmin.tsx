@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { usersApi } from '../api';
 import type { User, UserRole } from '../api/types';
+import { useAuth, useUniversities } from '../common';
+import { UniversityDropdownSelect } from '../common/UniversityDropdownSelect';
 
 export const UsersAdmin: React.FC = () => {
+  const { isGlobalAdmin, universityId: userUniversityId, isAdmin, user } = useAuth();
+  const { universities } = useUniversities();
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +17,6 @@ export const UsersAdmin: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<User | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<User | null>(null);
   const [editRole, setEditRole] = useState<UserRole>('user');
-  const [editUniversityId, setEditUniversityId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -57,13 +61,35 @@ export const UsersAdmin: React.FC = () => {
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+    
+    let matchesUniversity = true;
+    if (isGlobalAdmin) {
+      matchesUniversity = selectedUniversityId === 0 || user.university_id === selectedUniversityId || (user.university_id === null && selectedUniversityId === 0);
+    } else if (isAdmin) {
+      matchesUniversity = user.university_id === userUniversityId;
+    }
+    
+    return matchesSearch && matchesRole && matchesUniversity;
   });
 
+  const canEditUser = (user: User): boolean => {
+    if (user.isGlobalAdmin) return false;
+    if (user.university_id === null) return false;
+    if (isAdmin && user.university_id !== userUniversityId) return false;
+    return true;
+  };
+
+  const canDeleteUser = (userToDelete: User): boolean => {
+    if (user?.id === userToDelete.id) return false;
+    if (userToDelete.isGlobalAdmin) return false;
+    if (userToDelete.university_id === null) return false;
+    if (isAdmin && userToDelete.university_id !== userUniversityId) return false;
+    return true;
+  };
+
   const handleEditClick = (user: User) => {
-    setShowEditModal(user);
     setEditRole(user.role || 'user');
-    setEditUniversityId(user.university_id);
+    setShowEditModal(user);
   };
 
   const handleSaveRole = async () => {
@@ -72,7 +98,7 @@ export const UsersAdmin: React.FC = () => {
     setActionLoading(true);
     const result = await usersApi.updateUserRole(showEditModal.id, {
       role: editRole,
-      university_id: editRole === 'admin' && editUniversityId ? editUniversityId : null,
+      university_id: userUniversityId,
     });
     
     if (result.success) {
@@ -118,16 +144,34 @@ export const UsersAdmin: React.FC = () => {
     return <span className="admin-badge admin-badge-primary">User</span>;
   };
 
+  const getUserUniversityName = (user: User): string => {
+    if (user.university_id === null) return 'N/A';
+    const uni = universities.find(u => u.id === user.university_id);
+    return uni?.name || `ID: ${user.university_id}`;
+  };
+
   return (
     <AdminLayout>
       <div className="admin-header">
         <div className="admin-header-left">
           <h1>User Management</h1>
-          <p>Manage user accounts and permissions</p>
+          <p>{isGlobalAdmin ? 'Manage all user accounts' : 'Manage accounts for your university'}</p>
         </div>
-        <button className="btn btn-outline" onClick={loadUsers} disabled={loading}>
-          {loading ? 'Loading...' : 'Refresh'}
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {isGlobalAdmin && (
+            <div className="university-selector">
+              <UniversityDropdownSelect
+                value={selectedUniversityId}
+                onChange={setSelectedUniversityId}
+                universities={[{ id: 0, name: 'All Universities', email_domain: '' }, ...universities]}
+                className="admin-dropdown"
+              />
+            </div>
+          )}
+          <button className="btn btn-outline" onClick={loadUsers} disabled={loading}>
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       <div className="admin-content-card">
@@ -197,22 +241,24 @@ export const UsersAdmin: React.FC = () => {
                     <strong>{user.email}</strong>
                   </td>
                   <td>{user.username || 'N/A'}</td>
-                  <td>{user.university_name || (user.university_id === null ? 'N/A' : `ID: ${user.university_id}`)}</td>
+                  <td>{getUserUniversityName(user)}</td>
                   <td>{getRoleBadge(user)}</td>
                   <td>{formatDate(user.created_at)}</td>
                   <td>
                     <div className="admin-actions">
-                      <button
-                        className="admin-btn-icon success"
-                        onClick={() => handleEditClick(user)}
-                        title="Edit Role"
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      {!user.isGlobalAdmin && !(user.role === 'admin' && user.university_id === null) && (
+                      {canEditUser(user) && (
+                        <button
+                          className="admin-btn-icon success"
+                          onClick={() => handleEditClick(user)}
+                          title="Edit Role"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      )}
+                      {canDeleteUser(user) && (
                         <button
                           className="admin-btn-icon danger"
                           onClick={() => setShowDeleteConfirm(user)}
@@ -260,6 +306,8 @@ export const UsersAdmin: React.FC = () => {
               <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)' }}>
                 <p><strong>Email:</strong> {showEditModal.email}</p>
                 <p><strong>Username:</strong> {showEditModal.username || 'N/A'}</p>
+                <p><strong>University:</strong> {getUserUniversityName(showEditModal)}</p>
+                <p><strong>Created:</strong> {formatDate(showEditModal.created_at)}</p>
               </div>
 
               <div className="admin-form-group">
@@ -268,33 +316,32 @@ export const UsersAdmin: React.FC = () => {
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as UserRole)}
                 >
-                  <option value="user">User (Limited to university)</option>
+                  <option value="user">User</option>
                   <option value="admin">Admin</option>
+                  {isGlobalAdmin && (
+                    <option value="global">Global Admin</option>
+                  )}
                 </select>
+                <span className="admin-form-hint">
+                  {isGlobalAdmin 
+                    ? 'Global Admin has access to all universities. University Admin is limited to their university.'
+                    : 'You can promote this user to Admin for your university.'
+                  }
+                </span>
               </div>
 
-              {editRole === 'admin' && (
-                <div className="admin-form-group">
-                  <label>Admin Type</label>
-                  <select
-                    value={editUniversityId === null ? 'global' : editUniversityId}
-                    onChange={(e) => setEditUniversityId(e.target.value === 'global' ? null : Number(e.target.value))}
-                  >
-                    <option value="global">Global Admin (All Universities)</option>
-                    <option value="1">Central Philippine University (CPU)</option>
-                    <option value="2">West Visayas State University (WVSU)</option>
-                    <option value="3">UP Visayas (UPV)</option>
-                    <option value="4">Western Institute of Technology (WIT)</option>
-                    <option value="5">University of San Agustin (USA)</option>
-                    <option value="6">ISATU</option>
-                  </select>
-                  <span className="admin-form-hint">
-                    {editUniversityId === null 
-                      ? 'Global admin can manage all universities' 
-                      : 'Limited admin can only manage the selected university'}
-                  </span>
-                </div>
-              )}
+              <div className="admin-form-group">
+                <label>University</label>
+                <input
+                  type="text"
+                  value={getUserUniversityName(showEditModal)}
+                  disabled
+                  style={{ backgroundColor: 'var(--color-bg)', cursor: 'not-allowed' }}
+                />
+                <span className="admin-form-hint">
+                  University cannot be changed once assigned.
+                </span>
+              </div>
             </div>
             <div className="admin-modal-footer">
               <button className="btn btn-outline" onClick={() => setShowEditModal(null)}>
@@ -325,6 +372,7 @@ export const UsersAdmin: React.FC = () => {
               <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)' }}>
                 <p><strong>Email:</strong> {showDeleteConfirm.email}</p>
                 <p><strong>Username:</strong> {showDeleteConfirm.username || 'N/A'}</p>
+                <p><strong>University:</strong> {getUserUniversityName(showDeleteConfirm)}</p>
               </div>
               <p style={{ marginTop: '1rem', color: 'var(--color-error)' }}>This action cannot be undone.</p>
             </div>

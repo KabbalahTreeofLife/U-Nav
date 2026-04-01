@@ -1,35 +1,53 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopNav, BottomNav } from '../../common';
-import { getEventsByUniversity, getCategoryColor, getCategoryLabel } from '../data';
-import type { Event } from '../data';
+import { TopNav, BottomNav, useUniversities } from '../../common';
+import { eventsApi } from '../../api';
+import type { Event } from '../../api';
 import { useAuth } from '../../common/AuthContext';
+import { UniversityDropdownSelect } from '../../common/UniversityDropdownSelect';
 import '../../css/Map/Map.css';
 
 export const MapView2D: React.FC = () => {
     const navigate = useNavigate();
-    const { universityId, isGuest } = useAuth();
+    const { universityId, isGuest, isGlobalAdmin } = useAuth();
+    const { universities } = useUniversities();
+    const [selectedUniversityId, setSelectedUniversityId] = useState<number>(universityId || 1);
     const [showHeatMap, setShowHeatMap] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showEvents, setShowEvents] = useState(false);
+    const [events, setEvents] = useState<Event[]>([]);
 
-    const events = useMemo(() => {
-        return getEventsByUniversity(universityId || 1);
-    }, [universityId]);
+    const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : (universityId || 1);
 
-    const filteredEvents = useMemo(() => {
-        return events.filter(event =>
-            event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            event.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [events, searchQuery]);
+    useEffect(() => {
+        const fetchEvents = async () => {
+            const result = await eventsApi.getEvents(effectiveUniversityId);
+            if (result.success && result.data) {
+                setEvents(result.data);
+            }
+        };
+        fetchEvents();
+    }, [effectiveUniversityId]);
+
+    const filteredEvents = events.filter(event =>
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.organizer.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="map-container">
             <TopNav title="University Navigate" />
             
             <div className="map-controls">
+                {isGlobalAdmin && (
+                    <UniversityDropdownSelect
+                        value={selectedUniversityId}
+                        onChange={setSelectedUniversityId}
+                        universities={universities}
+                    />
+                )}
+
                 <div className="map-search-bar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="11" cy="11" r="8" />
@@ -112,6 +130,20 @@ export const MapView2D: React.FC = () => {
     );
 };
 
+const getCategoryColor = (category: string): string => {
+    switch (category) {
+        case 'academic': return '#3b82f6';
+        case 'sports': return '#10b981';
+        case 'cultural': return '#8b5cf6';
+        case 'social': return '#f59e0b';
+        default: return '#6b7280';
+    }
+};
+
+const getCategoryLabel = (category: string): string => {
+    return category.charAt(0).toUpperCase() + category.slice(1);
+};
+
 interface EventsModalProps {
     events: Event[];
     onClose: () => void;
@@ -155,7 +187,7 @@ const EventsModal: React.FC<EventsModalProps> = ({ events, onClose }) => {
                                                 <line x1="8" y1="2" x2="8" y2="6" />
                                                 <line x1="3" y1="10" x2="21" y2="10" />
                                             </svg>
-                                            <span>{event.date}</span>
+                                            <span>{new Date(event.date).toLocaleDateString()}</span>
                                         </div>
                                         <div className="event-detail">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

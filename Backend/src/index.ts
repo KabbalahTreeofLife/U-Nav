@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
+import diningRoutes from './routes/dining';
+import eventsRoutes from './routes/events';
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/dining', diningRoutes);
+app.use('/api/events', eventsRoutes);
 
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     console.error(err.stack);

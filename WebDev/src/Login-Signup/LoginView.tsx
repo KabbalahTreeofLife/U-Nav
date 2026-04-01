@@ -22,7 +22,7 @@ const initialValues: LoginFormData = {
 
 export const LoginView: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, login, isLoading: authLoading, error: authError, clearError } = useAuth();
+    const { isAuthenticated, login, isLoading: authLoading, error: authError, clearError, isAdmin, isGlobalAdmin } = useAuth();
     const { universities, isLoading: isLoadingUniversities } = useUniversities();
 
     useEffect(() => {
@@ -55,6 +55,9 @@ export const LoginView: React.FC = () => {
     });
 
     if (isAuthenticated) {
+        if (isGlobalAdmin || isAdmin) {
+            return <Navigate to="/admin" replace />;
+        }
         return <Navigate to="/map" replace />;
     }
 

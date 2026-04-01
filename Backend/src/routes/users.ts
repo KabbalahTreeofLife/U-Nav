@@ -43,36 +43,37 @@ router.put('/:id/role', async (req: Request, res: Response) => {
         const { id } = req.params;
         const { role, university_id } = req.body;
 
-        if (!role || !['user', 'admin'].includes(role)) {
-            res.status(400).json({ error: 'Invalid role. Must be "user" or "admin"' });
+        if (!role || !['user', 'admin', 'global'].includes(role)) {
+            res.status(400).json({ error: 'Invalid role. Must be "user", "admin", or "global"' });
             return;
         }
 
-        const userCheck = await query('SELECT id FROM users WHERE id = $1', [id]);
+        const userCheck = await query('SELECT id, role, university_id FROM users WHERE id = $1', [id]);
         if (userCheck.rows.length === 0) {
             res.status(404).json({ error: 'User not found' });
             return;
         }
 
-        let result;
-        if (role === 'admin') {
-            const uniId = university_id !== null && university_id !== undefined ? university_id : null;
-            result = await query(
-                `UPDATE users SET role = $1, university_id = $2 WHERE id = $3 ${USER_RETURN_QUERY}`,
-                [role, uniId, id]
-            );
-            res.json({ message: university_id ? 'User role updated successfully' : 'User role updated to global admin', user: result.rows[0] });
-        } else {
-            if (!university_id) {
-                res.status(400).json({ error: 'University ID is required for user role' });
-                return;
-            }
-            result = await query(
-                `UPDATE users SET role = $1, university_id = $2 WHERE id = $3 ${USER_RETURN_QUERY}`,
-                [role, university_id, id]
-            );
-            res.json({ message: 'User role updated successfully', user: result.rows[0] });
+        const currentUser = userCheck.rows[0];
+
+        if (currentUser.role === 'admin' && currentUser.university_id === null) {
+            res.status(403).json({ error: 'Cannot modify a global admin' });
+            return;
         }
+
+        let newRole = role;
+        let newUniversityId = university_id || currentUser.university_id;
+
+        if (role === 'global') {
+            newRole = 'admin';
+            newUniversityId = null;
+        }
+
+        const result = await query(
+            `UPDATE users SET role = $1, university_id = $2 WHERE id = $3 ${USER_RETURN_QUERY}`,
+            [newRole, newUniversityId, id]
+        );
+        res.json({ message: 'User role updated successfully', user: result.rows[0] });
     } catch (error) {
         console.error('Update user role error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -89,8 +90,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
             return;
         }
 
-        if (userCheck.rows[0].role === 'admin' && userCheck.rows[0].university_id === null) {
+        const userToDelete = userCheck.rows[0];
+        if (userToDelete.role === 'admin' && userToDelete.university_id === null) {
             res.status(403).json({ error: 'Cannot delete the global admin' });
+            return;
+        }
+
+        if (userToDelete.role === 'admin' && userToDelete.university_id !== null) {
+            res.status(403).json({ error: 'Cannot delete an admin. Demote to user first.' });
             return;
         }
 

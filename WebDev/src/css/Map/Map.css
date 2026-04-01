@@ -21,6 +21,25 @@
     border-bottom: 1px solid var(--color-border);
 }
 
+.map-controls .dropdown-container {
+    width: 160px;
+    flex-shrink: 0;
+}
+
+.map-controls .dropdown-container .dropdown-trigger {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.map-controls .dropdown-container .dropdown-search-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.map-controls .dropdown-container .dropdown-menu {
+    width: 160px;
+}
+
 .map-search-bar {
     flex: 1;
     display: flex;
@@ -55,6 +74,36 @@
 .map-icon-buttons {
     display: flex;
     gap: 0.5rem;
+}
+
+.map-university-selector select,
+.map-university-selector .select-field {
+    padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--color-text);
+    background: var(--color-white);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.625rem center;
+    min-width: 180px;
+}
+
+.map-university-selector select:hover,
+.map-university-selector .select-field:hover {
+    border-color: var(--color-primary);
+}
+
+.map-university-selector select:focus,
+.map-university-selector .select-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .map-icon-btn {
@@ -131,6 +180,15 @@
 }
 
 .map-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f2 50%, #c5dce8 100%);
+}
+
+.placeholder-content {
     text-align: center;
     padding: 3rem 2rem;
     background-color: var(--color-white);
@@ -139,21 +197,22 @@
     max-width: 400px;
 }
 
-.map-icon {
+.placeholder-icon {
     width: 80px;
     height: 80px;
     color: var(--color-primary);
     margin-bottom: 1.5rem;
+    opacity: 0.6;
 }
 
-.map-placeholder h2 {
+.placeholder-content h3 {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-text);
     margin: 0 0 0.5rem;
 }
 
-.map-placeholder p {
+.placeholder-content p {
     font-size: 1rem;
     color: var(--color-text-muted);
     margin: 0;

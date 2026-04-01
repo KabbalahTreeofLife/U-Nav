@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AdminLayout } from './AdminLayout';
-import type { Event } from '../map/data';
+import { eventsApi, type Event } from '../api';
+import { useAuth, useUniversities } from '../common';
+import { UniversityDropdownSelect } from '../common/UniversityDropdownSelect';
 
 type EventCategory = Event['category'];
 
@@ -19,6 +21,7 @@ interface EventFormData {
   time: string;
   organizer: string;
   category: EventCategory;
+  universityId: number;
 }
 
 const initialFormData: EventFormData = {
@@ -29,33 +32,44 @@ const initialFormData: EventFormData = {
   time: '',
   organizer: '',
   category: 'academic',
-};
-
-const loadEvents = (): Event[] => {
-  try {
-    const stored = localStorage.getItem('admin_events');
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveEvents = (events: Event[]) => {
-  localStorage.setItem('admin_events', JSON.stringify(events));
+  universityId: 1,
 };
 
 export const EventsAdmin: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>(loadEvents);
+  const { universityId: userUniversityId, isGlobalAdmin } = useAuth();
+  const { universities } = useUniversities();
+  const [selectedUniversityId, setSelectedUniversityId] = useState<number>(0);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<EventCategory | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDbId, setEditingDbId] = useState<number | null>(null);
   const [formData, setFormData] = useState<EventFormData>(initialFormData);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchEvents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    const uniId = isGlobalAdmin ? selectedUniversityId : (userUniversityId || 1);
+    const result = await eventsApi.getEvents(uniId === 0 ? undefined : uniId);
+    
+    if (result.success && result.data) {
+      setEvents(result.data);
+      setError(null);
+    } else {
+      setError('error' in result ? result.error : 'Failed to fetch events');
+    }
+    setLoading(false);
+  }, [selectedUniversityId, userUniversityId, isGlobalAdmin]);
 
   useEffect(() => {
-    saveEvents(events);
-  }, [events]);
+    fetchEvents();
+  }, [fetchEvents]);
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
@@ -63,7 +77,9 @@ export const EventsAdmin: React.FC = () => {
       event.organizer.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.room.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = filterCategory === 'all' || event.category === filterCategory;
-    return matchesSearch && matchesCategory;
+    const eventUniversityId = event.universityId || 1;
+    const matchesUniversity = selectedUniversityId === 0 || eventUniversityId === selectedUniversityId;
+    return matchesSearch && matchesCategory && matchesUniversity;
   });
 
   const sortedEvents = [...filteredEvents].sort(
@@ -71,8 +87,12 @@ export const EventsAdmin: React.FC = () => {
   );
 
   const openAddModal = () => {
-    setFormData(initialFormData);
+    const defaultUniversityId = isGlobalAdmin 
+      ? (selectedUniversityId || userUniversityId || 1)
+      : (userUniversityId || 1);
+    setFormData({ ...initialFormData, universityId: defaultUniversityId });
     setEditingId(null);
+    setEditingDbId(null);
     setIsModalOpen(true);
   };
 
@@ -85,56 +105,99 @@ export const EventsAdmin: React.FC = () => {
       time: event.time,
       organizer: event.organizer,
       category: event.category,
+      universityId: event.universityId || 1,
     });
     setEditingId(event.id);
+    setEditingDbId(event.isFromDb ? parseInt(event.id.replace('db-', '')) : null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+    setEditingDbId(null);
     setFormData(initialFormData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionLoading(true);
 
-    if (editingId) {
-      setEvents((prev) =>
-        prev.map((evt) =>
-          evt.id === editingId
-            ? {
-                ...evt,
-                title: formData.title,
-                description: formData.description,
-                room: formData.room,
-                date: formData.date,
-                time: formData.time,
-                organizer: formData.organizer,
-                category: formData.category,
-              }
-            : evt
-        )
-      );
-    } else {
-      const newEvent: Event = {
-        id: `event-${Date.now()}`,
-        title: formData.title,
-        description: formData.description,
-        room: formData.room,
-        date: formData.date,
-        time: formData.time,
-        organizer: formData.organizer,
-        category: formData.category,
-      };
-      setEvents((prev) => [...prev, newEvent]);
+    try {
+      if (editingId) {
+        const updateData = {
+          title: formData.title,
+          description: formData.description,
+          room: formData.room,
+          date: formData.date,
+          time: formData.time,
+          organizer: formData.organizer,
+          category: formData.category,
+        };
+
+        if (editingDbId) {
+          const result = await eventsApi.updateEvent(editingDbId, updateData);
+          if (result.success) {
+            await fetchEvents();
+          } else {
+            alert(result.error);
+            setActionLoading(false);
+            return;
+          }
+        } else {
+          setEvents((prev) =>
+            prev.map((evt) =>
+              evt.id === editingId
+                ? { ...evt, ...updateData }
+                : evt
+            )
+          );
+        }
+      } else {
+        const createData = {
+          universityId: formData.universityId,
+          title: formData.title,
+          description: formData.description,
+          room: formData.room,
+          date: formData.date,
+          time: formData.time,
+          organizer: formData.organizer,
+          category: formData.category,
+        };
+
+        const result = await eventsApi.createEvent(createData);
+        if (result.success) {
+          await fetchEvents();
+        } else {
+          alert(result.error);
+          setActionLoading(false);
+          return;
+        }
+      }
+      closeModal();
+    } catch (err) {
+      console.error('Error saving event:', err);
     }
-    closeModal();
+    setActionLoading(false);
   };
 
-  const handleDelete = (id: string) => {
-    setEvents((prev) => prev.filter((evt) => evt.id !== id));
+  const handleDelete = async (id: string, isFromDb: boolean) => {
+    setActionLoading(true);
+    
+    if (isFromDb) {
+      const dbId = parseInt(id.replace('db-', ''));
+      const result = await eventsApi.deleteEvent(dbId);
+      if (result.success) {
+        await fetchEvents();
+      } else {
+        alert(result.error);
+      }
+    } else {
+      setEvents((prev) => prev.filter((evt) => evt.id !== id));
+    }
+    
     setShowDeleteConfirm(null);
+    setActionLoading(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -158,9 +221,18 @@ export const EventsAdmin: React.FC = () => {
           <h1>Events</h1>
           <p>Manage events for your university</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          + Add Event
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {isGlobalAdmin && (
+            <UniversityDropdownSelect
+              value={selectedUniversityId}
+              onChange={setSelectedUniversityId}
+              universities={universities}
+            />
+          )}
+          <button className="btn btn-primary" onClick={openAddModal}>
+            + Add Event
+          </button>
+        </div>
       </div>
 
       <div className="admin-content-card">
@@ -202,7 +274,16 @@ export const EventsAdmin: React.FC = () => {
           </div>
         </div>
 
-        {sortedEvents.length > 0 ? (
+        {loading ? (
+          <div className="admin-empty-state">
+            <p>Loading...</p>
+          </div>
+        ) : error ? (
+          <div className="admin-empty-state" style={{ color: 'var(--color-error)' }}>
+            <p>{error}</p>
+            <button className="btn btn-outline" onClick={fetchEvents}>Retry</button>
+          </div>
+        ) : sortedEvents.length > 0 ? (
           <table className="admin-table">
             <thead>
               <tr>
@@ -312,6 +393,28 @@ export const EventsAdmin: React.FC = () => {
                   />
                 </div>
 
+                <div className="admin-form-group">
+                  <label>University *</label>
+                  {isGlobalAdmin ? (
+                    <select
+                      value={formData.universityId}
+                      onChange={(e) => setFormData({ ...formData, universityId: Number(e.target.value) })}
+                      required
+                    >
+                      {universities.map((uni) => (
+                        <option key={uni.id} value={uni.id}>{uni.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={universities.find(u => u.id === userUniversityId)?.name || 'Your University'}
+                      disabled
+                      style={{ backgroundColor: 'var(--color-bg)', cursor: 'not-allowed' }}
+                    />
+                  )}
+                </div>
+
                 <div className="admin-form-row">
                   <div className="admin-form-group">
                     <label>Category *</label>
@@ -376,8 +479,8 @@ export const EventsAdmin: React.FC = () => {
                 <button type="button" className="btn btn-outline" onClick={closeModal}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingId ? 'Update' : 'Add'} Event
+                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                  {actionLoading ? 'Saving...' : (editingId ? 'Update' : 'Add')} Event
                 </button>
               </div>
             </form>
@@ -407,9 +510,10 @@ export const EventsAdmin: React.FC = () => {
               <button
                 className="btn"
                 style={{ background: 'var(--color-error)', color: 'white' }}
-                onClick={() => handleDelete(showDeleteConfirm)}
+                onClick={() => handleDelete(showDeleteConfirm, showDeleteConfirm.startsWith('db-'))}
+                disabled={actionLoading}
               >
-                Delete
+                {actionLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

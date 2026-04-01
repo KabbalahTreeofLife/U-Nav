@@ -1,31 +1,61 @@
-import React, { useState, useMemo } from 'react';
-import { TopNav, BottomNav } from '../common';
-import { getDiningIcon, getTypeLabel, getDiningByUniversity } from './data';
-import type { DiningLocation } from './data';
+import React, { useState, useEffect } from 'react';
+import { TopNav, BottomNav, useUniversities } from '../common';
+import { diningApi } from '../api';
+import type { DiningLocation } from '../api';
 import { useAuth } from '../common/AuthContext';
+import { UniversityDropdownSelect } from '../common/UniversityDropdownSelect';
 import '../css/Dining/Dining.css';
 
 type FilterType = 'all' | 'restaurant' | 'cafe' | 'mess' | 'snack';
 
+const getTypeLabel = (type: string): string => {
+    switch (type) {
+        case 'restaurant': return 'Restaurant';
+        case 'cafe': return 'Cafe';
+        case 'mess': return 'Mess Hall';
+        case 'snack': return 'Snacks & Drinks';
+        default: return type;
+    }
+};
+
+const getDiningIcon = (type: string): string => {
+    switch (type) {
+        case 'restaurant': return 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z';
+        case 'cafe': return 'M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8zM6 2v2M10 2v2M14 2v2';
+        case 'mess': return 'M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3z';
+        case 'snack': return 'M12 2a10 10 0 1 0 10 10H12V2zM8 14s1.5 2 4 2 4-2 4-2';
+        default: return 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z';
+    }
+};
+
 export const DiningView: React.FC = () => {
-    const { universityId } = useAuth();
+    const { universityId, isGlobalAdmin } = useAuth();
+    const { universities } = useUniversities();
+    const [selectedUniversityId, setSelectedUniversityId] = useState<number>(universityId || 1);
     const [filter, setFilter] = useState<FilterType>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [diningLocations, setDiningLocations] = useState<DiningLocation[]>([]);
 
-    const diningLocations = useMemo(() => {
-        return getDiningByUniversity(universityId || 1);
-    }, [universityId]);
+    const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : (universityId || 1);
 
-    const filteredLocations = useMemo(() => {
-        return diningLocations.filter((location) => {
-            const matchesFilter = filter === 'all' || location.type === filter;
-            const matchesSearch = 
-                location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                location.building.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                location.cuisine.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
-            return matchesFilter && matchesSearch;
-        });
-    }, [filter, searchQuery, diningLocations]);
+    useEffect(() => {
+        const fetchDining = async () => {
+            const result = await diningApi.getLocations(effectiveUniversityId);
+            if (result.success && result.data) {
+                setDiningLocations(result.data);
+            }
+        };
+        fetchDining();
+    }, [effectiveUniversityId]);
+
+    const filteredLocations = diningLocations.filter((location) => {
+        const matchesFilter = filter === 'all' || location.type === filter;
+        const matchesSearch = 
+            location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.building.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            location.cuisine.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesFilter && matchesSearch;
+    });
 
     const renderStars = (rating: number) => {
         const stars = [];
@@ -48,18 +78,28 @@ export const DiningView: React.FC = () => {
         <div className="dining-container">
             <TopNav title="University Navigate" />
             
-            <div className="dining-search">
-                <input
-                    type="text"
-                    placeholder="Search restaurants, cafes, or cuisine..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="search-input"
-                />
-                <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                </svg>
+            <div className="dining-controls">
+                {isGlobalAdmin && (
+                    <UniversityDropdownSelect
+                        value={selectedUniversityId}
+                        onChange={setSelectedUniversityId}
+                        universities={universities}
+                        className="dropdown-small"
+                    />
+                )}
+                
+                <div className="dining-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <input
+                        type="text"
+                        placeholder="Search restaurants, cafes, or cuisine..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
 
             <div className="dining-filters">

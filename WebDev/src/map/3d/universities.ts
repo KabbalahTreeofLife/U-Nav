@@ -111,6 +111,41 @@ export const UNIVERSITY_MAPS: UniversityMap[] = [
             },
         ],
     },
+    {
+        id: 2,
+        name: 'West Visayas State University',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    },
+    {
+        id: 3,
+        name: 'University of the Philippines Visayas',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    },
+    {
+        id: 4,
+        name: 'Western Institute of Technology',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    },
+    {
+        id: 5,
+        name: 'University of San Agustin',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    },
+    {
+        id: 6,
+        name: 'ISATU',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    },
 ];
 
 export const getUniversityMap = (universityId: number): UniversityMap | undefined => {

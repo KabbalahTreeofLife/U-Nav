@@ -1,38 +1,73 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopNav, BottomNav } from '../../common';
+import { TopNav, BottomNav, useUniversities } from '../../common';
 import { CampusScene } from './CampusScene';
 import { getUniversityMap, getDefaultMap, type UniversityMap } from './universities';
-import { getEventsByUniversity, getCategoryColor, getCategoryLabel } from '../data';
+import { eventsApi } from '../../api';
+import type { Event } from '../../api';
 import { useAuth } from '../../common/AuthContext';
-import type { Event } from '../data';
+import { UniversityDropdownSelect } from '../../common/UniversityDropdownSelect';
 import '../../css/Map/Map.css';
+
+const getCategoryColor = (category: string): string => {
+    switch (category) {
+        case 'academic': return '#3b82f6';
+        case 'sports': return '#10b981';
+        case 'cultural': return '#8b5cf6';
+        case 'social': return '#f59e0b';
+        default: return '#6b7280';
+    }
+};
+
+const getCategoryLabel = (category: string): string => {
+    return category.charAt(0).toUpperCase() + category.slice(1);
+};
 
 export const MapView3D: React.FC = () => {
     const navigate = useNavigate();
-    const { isGuest, universityId } = useAuth();
+    const { isGuest, universityId, isGlobalAdmin } = useAuth();
+    const { universities } = useUniversities();
+    const [selectedUniversityId, setSelectedUniversityId] = useState<number>(universityId || 1);
     const [showHeatMap, setShowHeatMap] = useState(false);
     const [showEvents, setShowEvents] = useState(false);
+    const [events, setEvents] = useState<Event[]>([]);
+
+    const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : (universityId || 1);
 
     const universityMap: UniversityMap = useMemo(() => {
-        if (isGuest || !universityId) {
+        if (!effectiveUniversityId || effectiveUniversityId === 0) {
             return getDefaultMap();
         }
-        const map = getUniversityMap(universityId);
+        const map = getUniversityMap(effectiveUniversityId);
         return map || getDefaultMap();
-    }, [isGuest, universityId]);
+    }, [effectiveUniversityId]);
 
-    const glbUrl = isGuest ? undefined : universityMap.glbFile;
+    const glbUrl = universityMap.glbFile || undefined;
+    const showPlaceholder = !universityMap.glbFile;
 
-    const events = useMemo(() => {
-        return getEventsByUniversity(universityId || 1);
-    }, [universityId]);
+    useEffect(() => {
+        const fetchEvents = async () => {
+            const result = await eventsApi.getEvents(effectiveUniversityId);
+            if (result.success && result.data) {
+                setEvents(result.data);
+            }
+        };
+        fetchEvents();
+    }, [effectiveUniversityId]);
 
     return (
         <div className="map-container">
             <TopNav title="University Navigate" />
             
             <div className="map-controls">
+                {isGlobalAdmin && (
+                    <UniversityDropdownSelect
+                        value={selectedUniversityId}
+                        onChange={setSelectedUniversityId}
+                        universities={universities}
+                    />
+                )}
+
                 <div className="map-search-bar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="11" cy="11" r="8" />
@@ -88,7 +123,20 @@ export const MapView3D: React.FC = () => {
             </div>
 
             <div className="map-3d-view">
-                <CampusScene glbUrl={glbUrl} />
+                {showPlaceholder ? (
+                    <div className="map-placeholder">
+                        <div className="placeholder-content">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="placeholder-icon">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                            </svg>
+                            <h3>3D Map To Be Added</h3>
+                            <p>The 3D map for this university is currently under development.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <CampusScene glbUrl={glbUrl} />
+                )}
             </div>
 
             {isGuest && (
@@ -152,7 +200,7 @@ const EventsModal: React.FC<EventsModalProps> = ({ events, onClose }) => {
                                                 <line x1="8" y1="2" x2="8" y2="6" />
                                                 <line x1="3" y1="10" x2="21" y2="10" />
                                             </svg>
-                                            <span>{event.date}</span>
+                                            <span>{new Date(event.date).toLocaleDateString()}</span>
                                         </div>
                                         <div className="event-detail">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
