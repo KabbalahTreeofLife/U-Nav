@@ -76,7 +76,6 @@ export const MapView3D: React.FC = () => {
                     <input
                         type="text"
                         placeholder="Search buildings, rooms..."
-                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 

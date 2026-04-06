@@ -53,6 +53,10 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
     setHighlightedIndex(-1);
   };
 
+  const handleHiddenSelectBlur = () => {
+    onBlur?.({} as React.FocusEvent<HTMLSelectElement>);
+  };
+
   const handleToggle = () => {
     if (disabled) return;
     setIsOpen(!isOpen);
@@ -64,13 +68,8 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
     if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
       setIsOpen(false);
       setSearchTerm('');
-      if (onBlur) {
-        onBlur({
-          target: containerRef.current,
-        } as unknown as React.FocusEvent<HTMLSelectElement>);
-      }
     }
-  }, [onBlur]);
+  }, []);
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -188,7 +187,7 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
         name={name}
         value={value}
         onChange={onChange}
-        onBlur={onBlur}
+        onBlur={handleHiddenSelectBlur}
         required={required}
         disabled={disabled}
         className="dropdown-hidden-select"

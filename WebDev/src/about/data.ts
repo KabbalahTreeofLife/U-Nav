@@ -1,3 +1,8 @@
+export interface TeamMember {
+    name: string;
+    role: string;
+}
+
 export interface UniversityInfo {
     id: number;
     name: string;
@@ -5,6 +10,14 @@ export interface UniversityInfo {
     website?: string;
     email?: string;
 }
+
+export const TEAM_MEMBERS: TeamMember[] = [
+    { name: 'Xanth Reign Palmes', role: 'Team Leader' },
+    { name: 'Daniel Koen Parcon', role: 'Team Member' },
+    { name: 'Marc Francis Billiones', role: 'Team Member' },
+    { name: 'Marco Daniel Castillo', role: 'Team Member' },
+    { name: 'Seth Dofeliz', role: 'Team Member' },
+];
 
 export const UNIVERSITY_INFO: { [key: number]: UniversityInfo } = {
     1: {

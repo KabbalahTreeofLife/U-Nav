@@ -107,7 +107,7 @@ export const AdminDashboard: React.FC = () => {
             key={stat.label}
             className="admin-stat-card"
             onClick={stat.onClick}
-            style={{ cursor: stat.onClick ? 'pointer' : 'default' }}
+            style={{ cursor: 'pointer' }}
           >
             <div className={`admin-stat-icon ${stat.variant}`}>{stat.icon}</div>
             <div className="admin-stat-value">{stat.value}</div>

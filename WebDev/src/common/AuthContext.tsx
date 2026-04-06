@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { authApi } from '../api';
 import type { UserRole } from '../api/types';
+import type { ResponseResult } from '../api';
+import type { AuthUserResponse } from '../api';
+
+type AuthApiResult = ResponseResult<AuthUserResponse>;
+
+const isAuthApiSuccess = (result: AuthApiResult): result is AuthApiResult & { success: true } => {
+    return result.success;
+};
 
 interface AuthUser {
     id: number;
@@ -51,17 +59,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const result = await authApi.login({ email, password, university_id: universityId });
 
-        if (result.success) {
-            const loggedInUser = result.data.user || null;
+        if (isAuthApiSuccess(result)) {
+            const userData = result.data.user;
+            const loggedInUser: AuthUser = {
+                id: userData.id,
+                email: userData.email,
+                username: userData.username,
+                university_id: userData.university_id,
+                university_name: userData.university_name,
+                role: userData.role as UserRole,
+                isGlobalAdmin: userData.isGlobalAdmin,
+            };
             setUser(loggedInUser);
-            const effectiveUniversityId = loggedInUser?.isGlobalAdmin ? universityId : (loggedInUser?.university_id || null);
+            const effectiveUniversityId = userData.isGlobalAdmin ? universityId : (userData.university_id || null);
             setUniversityId(effectiveUniversityId);
             setIsGuest(false);
             setIsLoading(false);
             return true;
         }
 
-        setError(result.error);
+        setError(result.error || 'Login failed');
         setIsLoading(false);
         return false;
     }, []);

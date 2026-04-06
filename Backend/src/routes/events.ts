@@ -2,19 +2,12 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import { mapEventRow } from '../utils/mappers';
 import { requireAdmin, type AuthRequest } from '../middleware/auth';
+import { sendSuccess, sendError, sendNotFound, sendBadRequest, HTTP_STATUS, ERROR_MESSAGES } from '../utils/responseHelpers';
 
 const router = Router();
 
 const EVENTS_SELECT_QUERY = 'SELECT * FROM events';
 const EVENTS_RETURN_QUERY = 'RETURNING *';
-
-const sendSuccess = (res: Response, status: number, data: unknown) => {
-    res.status(status).json({ success: true, data });
-};
-
-const sendError = (res: Response, status: number, message: string) => {
-    res.status(status).json({ success: false, error: message });
-};
 
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -32,12 +25,12 @@ router.get('/', async (req: Request, res: Response) => {
         
         const result = await query(sql, params);
         
-        const events = result.rows.map((row) => mapEventRow(row as unknown as Record<string, unknown>));
+        const events = result.rows.map((row) => mapEventRow(row));
         
-        sendSuccess(res, 200, { events });
+        sendSuccess(res, HTTP_STATUS.OK, { events });
     } catch (error) {
         console.error('Error fetching events:', error);
-        sendError(res, 500, 'Failed to fetch events');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -47,15 +40,15 @@ router.get('/:id', async (req: Request, res: Response) => {
         const result = await query(`${EVENTS_SELECT_QUERY} WHERE id = $1`, [parseInt(id)]);
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Event not found');
+            return sendNotFound(res, 'Event not found');
         }
         
-        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
+        const event = mapEventRow(result.rows[0]);
         
-        sendSuccess(res, 200, { event });
+        sendSuccess(res, HTTP_STATUS.OK, { event });
     } catch (error) {
         console.error('Error fetching event:', error);
-        sendError(res, 500, 'Failed to fetch event');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -64,7 +57,7 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
         const { universityId, title, description, room, date, time, organizer, category } = req.body;
         
         if (!universityId || !title || !date) {
-            return sendError(res, 400, 'Missing required fields');
+            return sendBadRequest(res, ERROR_MESSAGES.REQUIRED_FIELDS);
         }
         
         const result = await query(
@@ -75,12 +68,12 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
             [universityId, title, description || '', room || '', date, time || '', organizer || '', category || 'academic']
         );
         
-        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
+        const event = mapEventRow(result.rows[0]);
         
-        sendSuccess(res, 201, { event });
+        sendSuccess(res, HTTP_STATUS.CREATED, { event });
     } catch (error) {
         console.error('Error creating event:', error);
-        sendError(res, 500, 'Failed to create event');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -105,15 +98,15 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
         );
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Event not found');
+            return sendNotFound(res, 'Event not found');
         }
         
-        const event = mapEventRow(result.rows[0] as unknown as Record<string, unknown>);
+        const event = mapEventRow(result.rows[0]);
         
-        sendSuccess(res, 200, { event });
+        sendSuccess(res, HTTP_STATUS.OK, { event });
     } catch (error) {
         console.error('Error updating event:', error);
-        sendError(res, 500, 'Failed to update event');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -123,13 +116,13 @@ router.delete('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
         const result = await query(`DELETE FROM events WHERE id = $1 RETURNING id`, [parseInt(id)]);
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Event not found');
+            return sendNotFound(res, 'Event not found');
         }
         
-        sendSuccess(res, 200, { message: 'Event deleted successfully' });
+        sendSuccess(res, HTTP_STATUS.OK, { message: 'Event deleted successfully' });
     } catch (error) {
         console.error('Error deleting event:', error);
-        sendError(res, 500, 'Failed to delete event');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 

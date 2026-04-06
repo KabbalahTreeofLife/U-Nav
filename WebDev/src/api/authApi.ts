@@ -17,13 +17,26 @@ interface CreateUniversityResponse {
     university: University;
 }
 
+export interface AuthUserResponse {
+    user: {
+        id: number;
+        email: string;
+        username?: string;
+        university_id: number | null;
+        university_name?: string;
+        role?: string;
+        isGlobalAdmin?: boolean;
+    };
+    message?: string;
+}
+
 export const authApi = {
-    async login(credentials: { email: string; password: string; university_id: number }): Promise<ResponseResult<{ user: unknown }>> {
-        return apiClient.post<{ user: unknown }>(API_ENDPOINTS.AUTH.LOGIN, credentials);
+    async login(credentials: { email: string; password: string; university_id: number }): Promise<ResponseResult<AuthUserResponse>> {
+        return apiClient.post<AuthUserResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
     },
 
-    async signup(userData: { university_id: number; email: string; username?: string; password: string }): Promise<ResponseResult<{ user: unknown }>> {
-        return apiClient.post<{ user: unknown }>(API_ENDPOINTS.AUTH.SIGNUP, userData);
+    async signup(userData: { university_id: number; email: string; username?: string; password: string }): Promise<ResponseResult<{ message: string }>> {
+        return apiClient.post<{ message: string }>(API_ENDPOINTS.AUTH.SIGNUP, userData);
     },
 
     async getUniversities(): Promise<ResponseResult<UniversitiesResponse>> {
