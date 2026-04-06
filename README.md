@@ -34,14 +34,14 @@ _Campus navigation application for universities._
 - **Frontend:** React 19 + TypeScript + Vite
 - **3D Graphics:** React Three Fiber + Three.js
 - **Backend:** Express.js + TypeScript
-- **Database:** PostgreSQL (via Supabase)
+- **Database:** Supabase (PostgreSQL)
 
 ---
 
 ## 📋 Prerequisites
 
 - **Node.js** (v18 or higher)
-- **PostgreSQL** (v14 or higher) or a **Supabase** account
+- **Supabase** account (free at [supabase.com](https://supabase.com))
 - **npm** or **yarn**
 
 ---
@@ -72,9 +72,7 @@ cd Backend && npm install
 cd ../WebDev && npm install
 ```
 
-### 3. Database Setup
-
-#### Option A: Using Supabase (Recommended)
+### 3. Database Setup (Supabase)
 
 1. Create a project at [supabase.com](https://supabase.com)
 2. Go to **Settings → Database** to find your connection string
@@ -93,37 +91,24 @@ cd ../WebDev && npm install
    DB_SSL=true
    ```
 
-#### Option B: Using Local PostgreSQL
-
-1. Install PostgreSQL on your machine
-2. Create a new database:
-   ```bash
-   createdb unav_db
-   ```
-3. Copy and configure the environment file:
-   ```bash
-   cp Backend/.env.example Backend/.env
-   ```
-4. Edit `Backend/.env` with your local database credentials:
-   ```env
-   PORT=3000
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=unav_db
-   DB_USER=postgres
-   DB_PASSWORD=your_password
-   DB_SSL=false
-   ```
-
 ### 4. Initialize the Database
 
-Run the SQL schema to create tables and insert sample data:
+#### Using Supabase SQL Editor (Recommended)
+
+1. Go to your Supabase project dashboard
+2. Navigate to **SQL Editor** in the left sidebar
+3. Click **New query**
+4. Copy and paste the contents of `Database/schema.sql` into the editor
+5. Click **Run** to execute the schema
+
+Or use the Supabase CLI:
 
 ```bash
-# Using psql
-psql -U postgres -d unav_db -f Database/schema.sql
+# Install Supabase CLI
+npm install -g supabase
 
-# Or if using Supabase's SQL editor, paste the contents of Database/schema.sql
+# Run the schema
+supabase db execute --file Database/schema.sql
 ```
 
 ---
