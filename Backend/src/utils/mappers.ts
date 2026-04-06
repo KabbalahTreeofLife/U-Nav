@@ -1,41 +1,79 @@
-export const mapDiningRow = (row: Record<string, unknown>) => ({
+interface DiningRow {
+    id: number;
+    university_id: number;
+    name: string;
+    type: string;
+    building: string;
+    floor: number;
+    operating_hours: string;
+    price_range: string;
+    cuisine: string[];
+    rating: number | string;
+    image_url: string | null;
+    coordinates_x: number | null;
+    coordinates_y: number | null;
+}
+
+interface EventRow {
+    id: number;
+    university_id: number;
+    title: string;
+    description: string;
+    room: string;
+    date: string | Date;
+    time: string;
+    organizer: string;
+    category: string;
+}
+
+interface UserRow {
+    id: number;
+    email: string;
+    username: string | null;
+    university_id: number | null;
+    role: string | null;
+    created_at: string | Date;
+    university_name?: string;
+}
+
+export const mapDiningRow = (row: DiningRow) => ({
     id: `db-${row.id}`,
-    name: row.name as string,
-    type: row.type as string,
-    building: row.building as string,
-    floor: row.floor as number,
-    operatingHours: row.operating_hours as string,
-    priceRange: row.price_range as string,
-    cuisine: (row.cuisine as string[]) || [],
-    rating: typeof row.rating === 'string' ? parseFloat(row.rating) : (row.rating as number) || 4.0,
-    imageUrl: row.image_url as string | undefined,
+    name: row.name,
+    type: row.type,
+    building: row.building,
+    floor: row.floor,
+    operatingHours: row.operating_hours,
+    priceRange: row.price_range,
+    cuisine: row.cuisine || [],
+    rating: typeof row.rating === 'string' ? parseFloat(row.rating) : row.rating || 4.0,
+    imageUrl: row.image_url || undefined,
     coordinates: row.coordinates_x !== null && row.coordinates_y !== null
-        ? { x: row.coordinates_x as number, y: row.coordinates_y as number }
+        ? { x: row.coordinates_x, y: row.coordinates_y }
         : undefined,
-    universityId: row.university_id as number,
+    universityId: row.university_id,
     isFromDb: true,
 });
 
-export const mapEventRow = (row: Record<string, unknown>) => ({
+export const mapEventRow = (row: EventRow) => ({
     id: `db-${row.id}`,
-    title: row.title as string,
-    description: row.description as string,
-    room: row.room as string,
-    date: row.date as string,
-    time: row.time as string,
-    organizer: row.organizer as string,
-    category: row.category as string,
-    universityId: row.university_id as number,
+    title: row.title,
+    description: row.description,
+    room: row.room,
+    date: typeof row.date === 'string' ? row.date : row.date.toString(),
+    time: row.time,
+    organizer: row.organizer,
+    category: row.category,
+    universityId: row.university_id,
     isFromDb: true,
 });
 
-export const mapUserRow = (row: Record<string, unknown>) => ({
-    id: row.id as number,
-    email: row.email as string,
-    username: row.username as string | undefined,
-    university_id: row.university_id as number | null,
-    university_name: row.university_name as string | undefined,
-    role: row.role as string | undefined,
+export const mapUserRow = (row: UserRow) => ({
+    id: row.id,
+    email: row.email,
+    username: row.username || undefined,
+    university_id: row.university_id,
+    university_name: row.university_name || undefined,
+    role: row.role || undefined,
     isGlobalAdmin: row.role === 'admin' && row.university_id === null,
-    created_at: row.created_at as string | undefined,
+    created_at: typeof row.created_at === 'string' ? row.created_at : row.created_at.toString(),
 });

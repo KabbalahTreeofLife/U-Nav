@@ -13,7 +13,10 @@ export const usersApi = {
             data,
             { headers: { 'x-user-id': userId.toString() } }
         );
-        return { success: result.success, error: result.error };
+        if (result.success) {
+            return { success: true };
+        }
+        return { success: false, error: 'Failed to update user role' };
     },
 
     deleteUser: async (id: number, userId: number): Promise<{ success: boolean; error?: string }> => {
@@ -21,6 +24,9 @@ export const usersApi = {
             API_ENDPOINTS.USERS.DELETE(id),
             { headers: { 'x-user-id': userId.toString() } }
         );
-        return { success: result.success, error: result.error };
+        if (result.success) {
+            return { success: true };
+        }
+        return { success: false, error: 'Failed to delete user' };
     },
 };

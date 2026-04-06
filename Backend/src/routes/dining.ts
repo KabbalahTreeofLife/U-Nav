@@ -2,19 +2,12 @@ import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import { mapDiningRow } from '../utils/mappers';
 import { requireAdmin, type AuthRequest } from '../middleware/auth';
+import { sendSuccess, sendError, sendNotFound, sendBadRequest, HTTP_STATUS, ERROR_MESSAGES } from '../utils/responseHelpers';
 
 const router = Router();
 
 const DINING_SELECT_QUERY = 'SELECT * FROM dining_locations';
 const DINING_RETURN_QUERY = 'RETURNING *';
-
-const sendSuccess = (res: Response, status: number, data: unknown) => {
-    res.status(status).json({ success: true, data });
-};
-
-const sendError = (res: Response, status: number, message: string) => {
-    res.status(status).json({ success: false, error: message });
-};
 
 router.get('/', async (req: Request, res: Response) => {
     try {
@@ -34,10 +27,10 @@ router.get('/', async (req: Request, res: Response) => {
         
         const locations = result.rows.map((row) => mapDiningRow(row));
         
-        sendSuccess(res, 200, { locations });
+        sendSuccess(res, HTTP_STATUS.OK, { locations });
     } catch (error) {
         console.error('Error fetching dining locations:', error);
-        sendError(res, 500, 'Failed to fetch dining locations');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -47,15 +40,15 @@ router.get('/:id', async (req: Request, res: Response) => {
         const result = await query(`${DINING_SELECT_QUERY} WHERE id = $1`, [parseInt(id)]);
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Dining location not found');
+            return sendNotFound(res, 'Dining location not found');
         }
         
-        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
+        const location = mapDiningRow(result.rows[0]);
         
-        sendSuccess(res, 200, { location });
+        sendSuccess(res, HTTP_STATUS.OK, { location });
     } catch (error) {
         console.error('Error fetching dining location:', error);
-        sendError(res, 500, 'Failed to fetch dining location');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -64,7 +57,7 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
         const { universityId, name, type, building, floor, operatingHours, priceRange, cuisine, rating, imageUrl, coordinates } = req.body;
         
         if (!universityId || !name || !type || !building) {
-            return sendError(res, 400, 'Missing required fields');
+            return sendBadRequest(res, ERROR_MESSAGES.REQUIRED_FIELDS);
         }
         
         const result = await query(
@@ -88,12 +81,12 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
             ]
         );
         
-        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
+        const location = mapDiningRow(result.rows[0]);
         
-        sendSuccess(res, 201, { location });
+        sendSuccess(res, HTTP_STATUS.CREATED, { location });
     } catch (error) {
         console.error('Error creating dining location:', error);
-        sendError(res, 500, 'Failed to create dining location');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -122,15 +115,15 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
         );
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Dining location not found');
+            return sendNotFound(res, 'Dining location not found');
         }
         
-        const location = mapDiningRow(result.rows[0] as unknown as Record<string, unknown>);
+        const location = mapDiningRow(result.rows[0]);
         
-        sendSuccess(res, 200, { location });
+        sendSuccess(res, HTTP_STATUS.OK, { location });
     } catch (error) {
         console.error('Error updating dining location:', error);
-        sendError(res, 500, 'Failed to update dining location');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 
@@ -140,13 +133,13 @@ router.delete('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
         const result = await query(`DELETE FROM dining_locations WHERE id = $1 RETURNING id`, [parseInt(id)]);
         
         if (result.rows.length === 0) {
-            return sendError(res, 404, 'Dining location not found');
+            return sendNotFound(res, 'Dining location not found');
         }
         
-        sendSuccess(res, 200, { message: 'Dining location deleted successfully' });
+        sendSuccess(res, HTTP_STATUS.OK, { message: 'Dining location deleted successfully' });
     } catch (error) {
         console.error('Error deleting dining location:', error);
-        sendError(res, 500, 'Failed to delete dining location');
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_MESSAGES.INTERNAL_ERROR);
     }
 });
 

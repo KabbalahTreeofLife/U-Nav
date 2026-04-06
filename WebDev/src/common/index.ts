@@ -7,3 +7,5 @@ export { ProtectedRoute } from './ProtectedRoute';
 export { AuthProvider, useAuth } from './AuthContext';
 export { useUniversities } from './useUniversities';
 export { ok, err } from './Result';
+export { useUserPermissions, useUserFilters } from './useUserPermissions';
+export { useApi } from './useApi';

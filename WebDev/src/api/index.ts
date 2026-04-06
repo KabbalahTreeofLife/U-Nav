@@ -11,7 +11,7 @@ export type {
     UpdateRoleRequest,
     ApiError,
 } from './types';
-export { authApi } from './authApi';
+export { authApi, type AuthUserResponse } from './authApi';
 export { usersApi } from './usersApi';
 export { diningApi, type DiningLocation, type CreateDiningRequest, type UpdateDiningRequest } from './diningApi';
 export { eventsApi, type Event, type CreateEventRequest, type UpdateEventRequest } from './eventsApi';
