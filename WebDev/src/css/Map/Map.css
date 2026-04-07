@@ -729,3 +729,305 @@
     height: 14px;
     flex-shrink: 0;
 }
+
+/* GPS Tracking Styles */
+.gps-btn.active {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.gps-btn.active:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+.gps-error-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: #fef2f2;
+    border-bottom: 1px solid #fecaca;
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+.gps-error-banner button {
+    padding: 0.25rem 0.75rem;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+
+.gps-warning-banner {
+    padding: 0.75rem 1rem;
+    background-color: #fffbeb;
+    border-bottom: 1px solid #fcd34d;
+    color: #92400e;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.gps-info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: #ecfdf5;
+    border-bottom: 1px solid #a7f3d0;
+    color: #065f46;
+    font-size: 0.8rem;
+}
+
+.accuracy-info {
+    font-size: 0.75rem;
+    color: #059669;
+}
+
+/* Navigation Info Bar */
+.navigation-info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: #eff6ff;
+    border-bottom: 1px solid #bfdbfe;
+}
+
+.nav-direction {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-distance {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.nav-time {
+    font-size: 0.875rem;
+    color: #3b82f6;
+}
+
+.nav-instruction {
+    font-size: 0.875rem;
+    color: #1d4ed8;
+    max-width: 60%;
+    text-align: right;
+}
+
+/* Search Results Dropdown */
+.map-search-container {
+    position: relative;
+}
+
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 500;
+    margin-top: 0.25rem;
+}
+
+.search-section {
+    padding: 0.5rem 0;
+}
+
+.search-section:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.search-section-title {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    background-color: var(--color-bg);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.search-result-item:hover {
+    background-color: var(--color-bg);
+}
+
+.result-icon {
+    font-size: 1.25rem;
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.result-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.result-detail {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.clear-destination-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Floor Selector */
+.floor-selector {
+    position: relative;
+}
+
+.floor-selector-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+}
+
+.floor-selector-trigger:hover {
+    border-color: var(--color-primary);
+}
+
+.floor-selector-trigger .chevron {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--transition-fast);
+}
+
+.floor-selector-trigger .chevron.expanded {
+    transform: rotate(180deg);
+}
+
+.floor-selector-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.floor-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    transition: background-color var(--transition-fast);
+}
+
+.floor-option:hover {
+    background-color: var(--color-bg);
+}
+
+.floor-option.active {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+/* Indoor Position Indicator */
+.indoor-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background-color: #fef3c7;
+    border-bottom: 1px solid #fcd34d;
+}
+
+.indoor-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.indoor-icon {
+    font-size: 1.25rem;
+}
+
+.indoor-building {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.floor-selector-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.floor-label {
+    font-size: 0.75rem;
+    color: #92400e;
+}
+
+.floor-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.floor-btn {
+    padding: 0.25rem 0.5rem;
+    background-color: var(--color-white);
+    border: 1px solid #d97706;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #92400e;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.floor-btn:hover {
+    background-color: #fef3c7;
+}
+
+.floor-btn.active {
+    background-color: #f59e0b;
+    border-color: #f59e0b;
+    color: white;
+}

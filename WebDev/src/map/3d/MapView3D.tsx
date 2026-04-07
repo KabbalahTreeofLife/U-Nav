@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TopNav, BottomNav, useUniversities } from '../../common';
 import { CampusScene } from './CampusScene';
@@ -7,6 +7,10 @@ import { eventsApi } from '../../api';
 import type { Event } from '../../api';
 import { useAuth } from '../../common/AuthContext';
 import { UniversityDropdownSelect } from '../../common/UniversityDropdownSelect';
+import { geolocationService, type GPSPosition, type ModelPosition } from './geolocation';
+import { coordinateTransformer } from './coordinateTransform';
+import { buildingDataService, type BuildingLocation, type RoomLocation } from './buildingData';
+import { navigationService, type NavigationResult } from './navigation';
 import '../../css/Map/Map.css';
 
 const getCategoryColor = (category: string): string => {
@@ -23,6 +27,8 @@ const getCategoryLabel = (category: string): string => {
     return category.charAt(0).toUpperCase() + category.slice(1);
 };
 
+const SCALE_METERS_PER_UNIT = 16.25;
+
 export const MapView3D: React.FC = () => {
     const navigate = useNavigate();
     const { isGuest, universityId, isGlobalAdmin } = useAuth();
@@ -31,6 +37,22 @@ export const MapView3D: React.FC = () => {
     const [showHeatMap, setShowHeatMap] = useState(false);
     const [showEvents, setShowEvents] = useState(false);
     const [events, setEvents] = useState<Event[]>([]);
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<{ buildings: BuildingLocation[]; rooms: RoomLocation[] }>({ buildings: [], rooms: [] });
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [selectedDestination, setSelectedDestination] = useState<BuildingLocation | RoomLocation | null>(null);
+    const [destinationPosition, setDestinationPosition] = useState<ModelPosition | null>(null);
+    const [destinationName, setDestinationName] = useState<string>('');
+    const [navigationInfo, setNavigationInfo] = useState<NavigationResult | null>(null);
+
+    const [userGPS, setUserGPS] = useState<GPSPosition | null>(null);
+    const [userPosition, setUserPosition] = useState<ModelPosition | null>(null);
+    const [gpsError, setGpsError] = useState<string | null>(null);
+    const [isTrackingGPS, setIsTrackingGPS] = useState(false);
+    const [gpsPermission, setGpsPermission] = useState<'pending' | 'granted' | 'denied'>('pending');
+    const [nearestBuilding, setNearestBuilding] = useState<BuildingLocation | null>(null);
+    const [isIndoor, setIsIndoor] = useState(false);
 
     const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : (universityId || 1);
 
@@ -55,6 +77,139 @@ export const MapView3D: React.FC = () => {
         fetchEvents();
     }, [effectiveUniversityId]);
 
+    useEffect(() => {
+        if (searchQuery.trim().length > 0) {
+            const results = buildingDataService.searchAll(searchQuery);
+            setSearchResults(results);
+            setShowSearchResults(true);
+        } else {
+            setSearchResults({ buildings: [], rooms: [] });
+            setShowSearchResults(false);
+        }
+    }, [searchQuery]);
+
+    const INDOOR_THRESHOLD_METERS = 20;
+
+    const findNearestBuildingAndCheckIndoor = useCallback((modelPos: ModelPosition) => {
+        const buildings = buildingDataService.getAllBuildings();
+        let nearest: BuildingLocation | null = null;
+        let minDistance = Infinity;
+
+        for (const building of buildings) {
+            const distance = navigationService.calculateDistance(modelPos, building.modelPosition) * SCALE_METERS_PER_UNIT;
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearest = building;
+            }
+        }
+
+        setNearestBuilding(nearest);
+        
+        if (nearest && minDistance < INDOOR_THRESHOLD_METERS) {
+            setIsIndoor(true);
+        } else {
+            setIsIndoor(false);
+        }
+
+        return nearest;
+    }, []);
+
+    useEffect(() => {
+        if (!geolocationService.isSupported()) {
+            setGpsError('Geolocation is not supported by your browser');
+            setGpsPermission('denied');
+            return;
+        }
+
+        const startAutoGPS = async () => {
+            try {
+                const initialPosition = await geolocationService.getCurrentPosition();
+                setUserGPS(initialPosition);
+                
+                const modelPos = coordinateTransformer.gpsToModel({
+                    latitude: initialPosition.latitude,
+                    longitude: initialPosition.longitude,
+                });
+                setUserPosition(modelPos);
+                findNearestBuildingAndCheckIndoor(modelPos);
+                setGpsPermission('granted');
+                setIsTrackingGPS(true);
+
+                geolocationService.watchPosition(
+                    (gpsPos) => {
+                        setUserGPS(gpsPos);
+                        const modelPos = coordinateTransformer.gpsToModel({
+                            latitude: gpsPos.latitude,
+                            longitude: gpsPos.longitude,
+                        });
+                        setUserPosition(modelPos);
+                        findNearestBuildingAndCheckIndoor(modelPos);
+
+                        if (destinationPosition) {
+                            const navResult = navigationService.calculateStraightLinePath(modelPos, destinationPosition, SCALE_METERS_PER_UNIT);
+                            setNavigationInfo(navResult);
+                        }
+                    },
+                    (error) => {
+                        setGpsError(error);
+                    }
+                );
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : 'Failed to get location';
+                if (errorMsg.includes('permission') || errorMsg.includes('denied')) {
+                    setGpsPermission('denied');
+                } else {
+                    setGpsError(errorMsg);
+                }
+            }
+        };
+
+        startAutoGPS();
+
+        return () => {
+            geolocationService.stopWatching();
+        };
+    }, [destinationPosition, findNearestBuildingAndCheckIndoor]);
+
+    const handleSelectDestination = useCallback((building: BuildingLocation | RoomLocation) => {
+        setSelectedDestination(building);
+        
+        let position: ModelPosition;
+        let name: string;
+
+        if ('buildingId' in building) {
+            const parentBuilding = buildingDataService.getBuildingById(building.buildingId);
+            position = building.modelPosition;
+            name = `${building.name} (${parentBuilding?.name || 'Unknown'})`;
+        } else {
+            position = building.modelPosition;
+            name = building.name;
+        }
+
+        setDestinationPosition(position);
+        setDestinationName(name);
+        setShowSearchResults(false);
+        setSearchQuery(name);
+
+        if (userPosition) {
+            const navResult = navigationService.calculateStraightLinePath(userPosition, position, SCALE_METERS_PER_UNIT);
+            setNavigationInfo(navResult);
+        }
+    }, [userPosition]);
+
+    const handleClearDestination = useCallback(() => {
+        setSelectedDestination(null);
+        setDestinationPosition(null);
+        setDestinationName('');
+        setNavigationInfo(null);
+    }, []);
+
+    const centerOnUser = useCallback(() => {
+        if (userPosition) {
+            console.log('Center on user:', userPosition);
+        }
+    }, [userPosition]);
+
     return (
         <div className="map-container">
             <TopNav title="University Navigate" />
@@ -68,18 +223,100 @@ export const MapView3D: React.FC = () => {
                     />
                 )}
 
-                <div className="map-search-bar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                    <input
-                        type="text"
-                        placeholder="Search buildings, rooms..."
-                    />
+                <div className="map-search-container" style={{ position: 'relative', flex: 1 }}>
+                    <div className="map-search-bar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35" />
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder="Search buildings, rooms..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => searchQuery.trim() && setShowSearchResults(true)}
+                        />
+                        {selectedDestination && (
+                            <button 
+                                className="clear-destination-btn"
+                                onClick={handleClearDestination}
+                                style={{ 
+                                    background: 'none', 
+                                    border: 'none', 
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" width="16" height="16">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+
+                    {showSearchResults && (searchResults.buildings.length > 0 || searchResults.rooms.length > 0) && (
+                        <div className="search-results-dropdown">
+                            {searchResults.buildings.length > 0 && (
+                                <div className="search-section">
+                                    <div className="search-section-title">Buildings</div>
+                                    {searchResults.buildings.map((building) => (
+                                        <div 
+                                            key={building.id}
+                                            className="search-result-item"
+                                            onClick={() => handleSelectDestination(building)}
+                                        >
+                                            <span className="result-icon">🏢</span>
+                                            <div className="result-info">
+                                                <span className="result-name">{building.name}</span>
+                                                <span className="result-detail">{building.description}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {searchResults.rooms.length > 0 && (
+                                <div className="search-section">
+                                    <div className="search-section-title">Rooms</div>
+                                    {searchResults.rooms.map((room) => {
+                                        const building = buildingDataService.getBuildingById(room.buildingId);
+                                        return (
+                                            <div 
+                                                key={room.id}
+                                                className="search-result-item"
+                                                onClick={() => handleSelectDestination(room)}
+                                            >
+                                                <span className="result-icon">🚪</span>
+                                                <div className="result-info">
+                                                    <span className="result-name">{room.name}</span>
+                                                    <span className="result-detail">{building?.name || 'Unknown Building'}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="map-icon-buttons">
+                    {userPosition && (
+                        <button
+                            className="map-icon-btn"
+                            onClick={centerOnUser}
+                            title="Center on my location"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="3" fill="currentColor" />
+                            </svg>
+                            <span>Center</span>
+                        </button>
+                    )}
+
                     <button
                         className="map-icon-btn map-view-toggle"
                         onClick={() => navigate('/map/2d')}
@@ -121,6 +358,47 @@ export const MapView3D: React.FC = () => {
                 </div>
             </div>
 
+            {gpsError && (
+                <div className="gps-error-banner">
+                    <span>⚠️ {gpsError}</span>
+                    <button onClick={() => setGpsError(null)}>Dismiss</button>
+                </div>
+            )}
+
+            {gpsPermission === 'denied' && (
+                <div className="gps-warning-banner">
+                    <span>📍 Location access denied. Enable GPS in browser settings to track your position.</span>
+                </div>
+            )}
+
+            {isTrackingGPS && userGPS && (
+                <div className="gps-info-bar">
+                    <span>📍 Your location: {userGPS.latitude.toFixed(6)}, {userGPS.longitude.toFixed(6)}</span>
+                    <span className="accuracy-info">Accuracy: ±{Math.round(userGPS.accuracy)}m</span>
+                </div>
+            )}
+
+            {navigationInfo && (
+                <div className="navigation-info-bar">
+                    <div className="nav-direction">
+                        <span className="nav-distance">📏 {Math.round(navigationInfo.totalDistanceMeters)}m</span>
+                        <span className="nav-time">⏱️ ~{navigationInfo.estimatedTimeMinutes} min</span>
+                    </div>
+                    <div className="nav-instruction">
+                        {navigationInfo.waypoints[1]?.instruction}
+                    </div>
+                </div>
+            )}
+
+            {isTrackingGPS && isIndoor && nearestBuilding && (
+                <div className="indoor-indicator">
+                    <div className="indoor-status">
+                        <span className="indoor-icon">🏢</span>
+                        <span className="indoor-building">Inside {nearestBuilding.name}</span>
+                    </div>
+                </div>
+            )}
+
             <div className="map-3d-view">
                 {showPlaceholder ? (
                     <div className="map-placeholder">
@@ -134,7 +412,15 @@ export const MapView3D: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <CampusScene glbUrl={glbUrl} />
+                    <CampusScene 
+                        glbUrl={glbUrl}
+                        userPosition={userPosition}
+                        accuracy={userGPS?.accuracy ?? 10}
+                        scaleMetersPerUnit={SCALE_METERS_PER_UNIT}
+                        destinationPosition={destinationPosition}
+                        destinationName={destinationName}
+                        showUserDot={isTrackingGPS}
+                    />
                 )}
             </div>
 
