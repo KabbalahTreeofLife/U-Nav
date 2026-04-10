@@ -1,8 +1,10 @@
 export interface Building {
     id: string;
     name: string;
+    description: string;
     position: [number, number, number];
     size: [number, number, number];
+    rotation?: number;
     floors: Floor[];
 }
 

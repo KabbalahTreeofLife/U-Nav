@@ -1,11 +1,15 @@
-import React, { useRef, useMemo, Suspense } from 'react';
+import React, { useRef, useMemo, Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { DEFAULT_MAP_CONFIG } from './universities';
+import { DEFAULT_BUILDINGS } from './buildings';
 import { UserDot, DestinationMarker, PathLine } from './userPosition';
 import { KeyboardControls } from './KeyboardControls';
+import { BuildingHitboxes } from './BuildingHitbox';
+import { BuildingPopup } from './BuildingPopup';
 import type { ModelPosition } from './geolocation';
+import type { Building } from './types';
 
 interface CampusSceneProps {
     glbUrl?: string;
@@ -65,7 +69,7 @@ const GridFloor: React.FC = () => {
     }, [gridSize, sectionSize]);
 
     return (
-        <group position={[0, 1.5, 0]} rotation={[0, (13 * Math.PI) / 45, 0]}>
+        <group position={[0, 1.5, 0]} rotation={[0, 0, 0]}>
             {gridLines.xLines.map((line: THREE.Line, idx: number) => (
                 <primitive key={`x-${idx}`} object={line} />
             ))}
@@ -97,7 +101,7 @@ const CampusModel: React.FC<{ url: string }> = ({ url }) => {
     );
 };
 
-const SceneContent: React.FC<CampusSceneProps> = ({ 
+const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | null; onSelectBuilding: (building: Building | null) => void }> = ({ 
     glbUrl,
     userPosition,
     accuracy = 10,
@@ -105,6 +109,8 @@ const SceneContent: React.FC<CampusSceneProps> = ({
     destinationPosition,
     destinationName,
     showUserDot = true,
+    selectedBuildingId,
+    onSelectBuilding,
 }) => {
     const orbitControlsRef = useRef(null);
     const pathPoints = userPosition && destinationPosition 
@@ -120,6 +126,12 @@ const SceneContent: React.FC<CampusSceneProps> = ({
             <GridFloor />
 
             {glbUrl && <CampusModel url={glbUrl} />}
+
+            <BuildingHitboxes
+                buildings={DEFAULT_BUILDINGS}
+                onSelectBuilding={onSelectBuilding}
+                selectedBuildingId={selectedBuildingId}
+            />
 
             {showUserDot && userPosition && (
                 <UserDot 
@@ -156,22 +168,37 @@ const SceneContent: React.FC<CampusSceneProps> = ({
 };
 
 export const CampusScene: React.FC<CampusSceneProps> = (props) => {
+    const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+    const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+
+    const handleSelectBuilding = (building: Building | null) => {
+        setSelectedBuildingId(building?.id ?? null);
+        setSelectedBuilding(building);
+    };
+
     return (
-        <Canvas
-            camera={{
-                position: DEFAULT_MAP_CONFIG.cameraPosition,
-                fov: 50,
-                near: 0.1,
-                far: 1000,
-            }}
-            shadows
-            style={{ width: '100%', height: '100%' }}
-        >
-            <Suspense fallback={null}>
-                <SceneContent {...props} />
-                <Environment preset="city" />
-            </Suspense>
-        </Canvas>
+        <>
+            <Canvas
+                camera={{
+                    position: DEFAULT_MAP_CONFIG.cameraPosition,
+                    fov: 50,
+                    near: 0.1,
+                    far: 1000,
+                }}
+                shadows
+                style={{ width: '100%', height: '100%' }}
+            >
+                <Suspense fallback={null}>
+                    <SceneContent 
+                        {...props} 
+                        selectedBuildingId={selectedBuildingId}
+                        onSelectBuilding={handleSelectBuilding}
+                    />
+                    <Environment preset="city" />
+                </Suspense>
+            </Canvas>
+            <BuildingPopup building={selectedBuilding} onClose={() => handleSelectBuilding(null)} />
+        </>
     );
 };
 

@@ -21,9 +21,4 @@ CREATE POLICY "allow_insert_events" ON public.events FOR INSERT WITH CHECK (true
 CREATE POLICY "allow_update_events" ON public.events FOR UPDATE USING (true);
 CREATE POLICY "allow_delete_events" ON public.events FOR DELETE USING (true);
 
--- Password reset tokens: Everyone can read, insert, delete (for password reset functionality)
-CREATE POLICY "allow_read_tokens" ON public.password_reset_tokens FOR SELECT USING (true);
-CREATE POLICY "allow_insert_tokens" ON public.password_reset_tokens FOR INSERT WITH CHECK (true);
-CREATE POLICY "allow_delete_tokens" ON public.password_reset_tokens FOR DELETE USING (true);
-
 SELECT 'All RLS policies created' as status;
