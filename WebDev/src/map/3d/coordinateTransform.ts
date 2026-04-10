@@ -18,8 +18,8 @@ const DEFAULT_CONFIG: CoordinateConfig = {
     originAnchor: {
         modelPosition: { x: 0, y: 0, z: 0 },
         gpsPosition: {
-            latitude: 10.730364,
-            longitude: 122.549244,
+            latitude: 10.7308651,
+            longitude: 122.5485796,
         },
     },
     scaleMetersPerUnit: 16.25,
@@ -47,38 +47,41 @@ export class CoordinateTransformer {
     }
 
     gpsToModel(gps: { latitude: number; longitude: number }): ModelPosition {
-        const { originAnchor, scaleMetersPerUnit } = this.config;
+        const { originAnchor } = this.config;
         
-        const latDiff = gps.latitude - originAnchor.gpsPosition.latitude;
-        const lonDiff = gps.longitude - originAnchor.gpsPosition.longitude;
+        const dNorth = (gps.latitude - originAnchor.gpsPosition.latitude) * 111320;
+        const dEast = (gps.longitude - originAnchor.gpsPosition.longitude) * 111320 * Math.cos(this.degreesToRadians(originAnchor.gpsPosition.latitude));
         
-        const latMeters = latDiff * 111320;
-        const lonMeters = lonDiff * 111320 * Math.cos(this.degreesToRadians(originAnchor.gpsPosition.latitude));
+        const rawX = dEast / 16.25;
+        const rawZ = dNorth / 16.25;
         
-        const rawX = lonMeters / scaleMetersPerUnit;
-        const rawZ = latMeters / scaleMetersPerUnit;
+        const angle = this.degreesToRadians(-55);
         
-        const rotatedX = rawX * Math.cos(-this.rotationRadians) - rawZ * Math.sin(-this.rotationRadians);
-        const rotatedZ = rawX * Math.sin(-this.rotationRadians) + rawZ * Math.cos(-this.rotationRadians);
+        const rotatedX = rawX * Math.cos(angle) - rawZ * Math.sin(angle);
+        const rotatedZ = rawX * Math.sin(angle) + rawZ * Math.cos(angle);
         
         return {
-            x: rotatedX,
+            x: -rotatedZ,
             y: 0,
-            z: rotatedZ,
+            z: rotatedX,
         };
     }
 
     modelToGPS(model: ModelPosition): { latitude: number; longitude: number } {
-        const { originAnchor, scaleMetersPerUnit } = this.config;
+        const { originAnchor } = this.config;
         
-        const rotatedX = model.x * Math.cos(this.rotationRadians) - model.z * Math.sin(this.rotationRadians);
-        const rotatedZ = model.x * Math.sin(this.rotationRadians) + model.z * Math.cos(this.rotationRadians);
+        const unrotatedX = -model.z;
+        const unrotatedZ = model.x;
         
-        const lonMeters = rotatedX * scaleMetersPerUnit;
-        const latMeters = rotatedZ * scaleMetersPerUnit;
+        const angle = this.degreesToRadians(-55);
+        const unrotatedX2 = unrotatedX * Math.cos(angle) - unrotatedZ * Math.sin(angle);
+        const unrotatedZ2 = unrotatedX * Math.sin(angle) + unrotatedZ * Math.cos(angle);
         
-        const latDiff = latMeters / 111320;
-        const lonDiff = lonMeters / (111320 * Math.cos(this.degreesToRadians(originAnchor.gpsPosition.latitude)));
+        const dEast = unrotatedX2 * 16.25;
+        const dNorth = unrotatedZ2 * 16.25;
+        
+        const latDiff = dNorth / 111320;
+        const lonDiff = dEast / (111320 * Math.cos(this.degreesToRadians(originAnchor.gpsPosition.latitude)));
         
         return {
             latitude: originAnchor.gpsPosition.latitude + latDiff,

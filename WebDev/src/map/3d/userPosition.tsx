@@ -17,7 +17,8 @@ export const UserDot: React.FC<UserDotProps> = ({
     visible = true,
 }) => {
     const groupRef = useRef<THREE.Group>(null);
-    const accuracyRadius = accuracy / scaleMetersPerUnit;
+    const clampedAccuracy = Math.min(accuracy, 50);
+    const accuracyRadius = clampedAccuracy / scaleMetersPerUnit;
 
     useEffect(() => {
         if (groupRef.current && position) {
