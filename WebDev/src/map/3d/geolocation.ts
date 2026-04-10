@@ -32,8 +32,8 @@ export class GeolocationService {
 
             const defaultOptions: GeolocationOptions = {
                 enableHighAccuracy: true,
-                timeout: options?.timeout ?? 10000,
-                maximumAge: options?.maximumAge ?? 0,
+                timeout: options?.timeout ?? 30000,
+                maximumAge: options?.maximumAge ?? 5000,
             };
 
             navigator.geolocation.getCurrentPosition(
@@ -113,7 +113,7 @@ export class GeolocationService {
             },
             {
                 enableHighAccuracy: options?.enableHighAccuracy ?? true,
-                timeout: options?.timeout ?? 10000,
+                timeout: options?.timeout ?? 30000,
                 maximumAge: options?.maximumAge ?? 5000,
             }
         );
