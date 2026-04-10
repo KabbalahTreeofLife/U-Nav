@@ -5,7 +5,6 @@
 -- Drop tables if they exist (for fresh setup)
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS universities CASCADE;
-DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS dining_locations CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
 
@@ -35,19 +34,6 @@ CREATE TABLE users (
 
 -- Create index for faster username lookups
 CREATE INDEX idx_users_username ON users(username);
-
--- ============================================
--- Password Reset Tokens Table
--- ============================================
-CREATE TABLE password_reset_tokens (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    token VARCHAR(255) NOT NULL UNIQUE,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_password_reset_token ON password_reset_tokens(token);
 
 -- ============================================
 -- Dining Locations Table

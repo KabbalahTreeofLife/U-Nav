@@ -79,6 +79,7 @@ export const KeyboardControls: React.FC<KeyboardControlsProps> = ({
         controls.target.add(movement);
         camera.position.add(movement);
         controls.update();
+        controls.update();
     });
 
     return null;
