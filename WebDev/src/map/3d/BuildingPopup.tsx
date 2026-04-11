@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../../common';
 import type { Building } from './types';
 
 interface BuildingPopupProps {
@@ -7,7 +8,15 @@ interface BuildingPopupProps {
 }
 
 export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose }) => {
+    const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+    const { isGuest } = useAuth();
+
     if (!building) return null;
+
+    const handleToggle = (area: string) => {
+        if (isGuest) return;
+        setExpanded((prev) => ({ ...prev, [area]: !prev[area] }));
+    };
 
     return (
         <div
@@ -53,109 +62,103 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                     ×
                 </button>
             </div>
+            <div style={{ height: '1px', background: '#e5e7eb', width: '100%' }} />
 
             <div style={{ padding: '16px 20px', overflowY: 'auto', maxHeight: 'calc(80vh - 60px)' }}>
-                <p style={{ margin: '0 0 16px 0', color: '#4b5563', fontSize: '14px' }}>
-                    {building.description}
-                </p>
-
                 <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937', textAlign: 'left' }}>
                         Location
                     </h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', textAlign: 'left' }}>
                         X: {building.position[0]}, Y: {building.position[1]}, Z: {building.position[2]}
                     </p>
                 </div>
-
                 <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937', textAlign: 'left' }}>
                         Size
                     </h3>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', textAlign: 'left' }}>
                         Width: {building.size[0]}, Height: {building.size[1]}, Depth: {building.size[2]}
                     </p>
                 </div>
-
-                {building.floors.length > 0 && (
-                    <div>
-                        <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>
-                            Floors ({building.floors.length})
-                        </h3>
-
-                        {building.floors.map((floor) => (
+                <div style={{ fontWeight: 'bold', fontSize: '15px', textAlign: 'left' }}>Description</div>
+                <p style={{ margin: '0 0 16px 0', color: '#4b5563', fontSize: '14px' }}>
+                    {building.description}
+                </p>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', textAlign: 'left' }}>Areas</div>
+                {building.name === 'College of Engineering' && (
+                    <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
+                            {/* Lobby Box */}
                             <div
-                                key={floor.id}
                                 style={{
-                                    border: '1px solid #e5e7eb',
+                                    background: '#f3f4f6',
                                     borderRadius: '8px',
-                                    marginBottom: '12px',
-                                    overflow: 'hidden',
+                                    padding: '12px',
+                                    minHeight: expanded['Lobby'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: isGuest ? 'not-allowed' : 'pointer',
+                                    transition: 'min-height 0.2s',
                                 }}
+                                onClick={() => handleToggle('Lobby')}
                             >
-                                <div
-                                    style={{
-                                        background: '#f3f4f6',
-                                        padding: '8px 12px',
-                                        fontSize: '13px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                        borderBottom: '1px solid #e5e7eb',
-                                    }}
-                                >
-                                    Floor {floor.floorNumber}
-                                </div>
-
-                                {floor.rooms.length > 0 ? (
-                                    <div style={{ padding: '8px 12px' }}>
-                                        {floor.rooms.map((room) => (
-                                            <div
-                                                key={room.id}
-                                                style={{
-                                                    padding: '6px 0',
-                                                    borderBottom: '1px solid #f3f4f6',
-                                                }}
-                                            >
-                                                <div style={{ fontSize: '13px', fontWeight: '500', color: '#1f2937' }}>
-                                                    {room.name}
-                                                </div>
-                                                {room.subject && (
-                                                    <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                                                        {room.stubCode} - {room.subject}
-                                                    </div>
-                                                )}
-                                                {room.teacher && (
-                                                    <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                                                        Teacher: {room.teacher}
-                                                    </div>
-                                                )}
-                                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                                    Capacity: {room.currentOccupancy}/{room.capacity}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div style={{ padding: '8px 12px', fontSize: '12px', color: '#9ca3af' }}>
-                                        No rooms
+                                <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' }}>Lobby</div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>Status:</div>
+                                {expanded['Lobby'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <div style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center' }}>Empty</div>
+                                            <div style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center' }}>Partially Full</div>
+                                            <div style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center' }}>Full</div>
+                                        </div>
+                                        {/* Expanded content placeholder */}
                                     </div>
                                 )}
                             </div>
-                        ))}
-                    </div>
-                )}
-
-                {building.floors.length === 0 && (
-                    <div
-                        style={{
-                            textAlign: 'center',
-                            padding: '16px',
-                            color: '#9ca3af',
-                            fontSize: '13px',
-                        }}
-                    >
-                        No floor information available
-                    </div>
+                            {/* Study Area Box */}
+                            <div
+                                style={{
+                                    background: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    minHeight: expanded['Study Area'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: isGuest ? 'not-allowed' : 'pointer',
+                                    opacity: isGuest ? 0.6 : 1,
+                                    transition: 'min-height 0.2s',
+                                }}
+                                onClick={() => handleToggle('Study Area')}
+                            >
+                                <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' }}>Study Area</div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>Status:</div>
+                                {expanded['Study Area'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <div style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center' }}>Empty</div>
+                                            <div style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center' }}>Partially Full</div>
+                                            <div style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center' }}>Full</div>
+                                        </div>
+                                        {/* Expanded content placeholder */}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {/* Status label moved inside each area box */}
+                    </>
                 )}
             </div>
         </div>
