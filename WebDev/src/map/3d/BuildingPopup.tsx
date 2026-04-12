@@ -9,6 +9,7 @@ interface BuildingPopupProps {
 
 export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose }) => {
     const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+    const [areaStatus, setAreaStatus] = useState<{ [key: string]: string }>({});
     const { isGuest } = useAuth();
 
     if (!building) return null;
@@ -16,6 +17,11 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
     const handleToggle = (area: string) => {
         if (isGuest) return;
         setExpanded((prev) => ({ ...prev, [area]: !prev[area] }));
+    };
+
+    const handleStatusSelect = (area: string, status: string) => {
+        if (isGuest) return;
+        setAreaStatus((prev) => ({ ...prev, [area]: status }));
     };
 
     return (
@@ -103,20 +109,68 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'flex-start',
-                                    cursor: isGuest ? 'not-allowed' : 'pointer',
+                                    cursor: 'default',
+                                    opacity: isGuest ? 0.6 : 1,
                                     transition: 'min-height 0.2s',
                                 }}
-                                onClick={() => handleToggle('Lobby')}
                             >
-                                <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' }}>Lobby</div>
-                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>Status:</div>
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Lobby</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('Lobby')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['Lobby'] ? 'Close Lobby dropdown' : 'Open Lobby dropdown'}
+                                    >
+                                        {expanded['Lobby'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['Lobby'] || ''}
+                                </div>
                                 {expanded['Lobby'] && (
                                     <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
                                         <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
                                         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center' }}>Empty</div>
-                                            <div style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center' }}>Partially Full</div>
-                                            <div style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center' }}>Full</div>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Lobby', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Lobby', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Lobby', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
                                         </div>
                                         {/* Expanded content placeholder */}
                                     </div>
@@ -136,21 +190,68 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'flex-start',
-                                    cursor: isGuest ? 'not-allowed' : 'pointer',
+                                    cursor: 'default',
                                     opacity: isGuest ? 0.6 : 1,
                                     transition: 'min-height 0.2s',
                                 }}
-                                onClick={() => handleToggle('Study Area')}
                             >
-                                <div style={{ fontWeight: 'bold', fontSize: '15px', marginBottom: '2px' }}>Study Area</div>
-                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>Status:</div>
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Study Area</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('Study Area')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['Study Area'] ? 'Close Study Area dropdown' : 'Open Study Area dropdown'}
+                                    >
+                                        {expanded['Study Area'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['Study Area'] || ''}
+                                </div>
                                 {expanded['Study Area'] && (
                                     <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
                                         <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
                                         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center' }}>Empty</div>
-                                            <div style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center' }}>Partially Full</div>
-                                            <div style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center' }}>Full</div>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Study Area', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Study Area', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Study Area', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
                                         </div>
                                         {/* Expanded content placeholder */}
                                     </div>
@@ -158,6 +259,332 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                             </div>
                         </div>
                         {/* Status label moved inside each area box */}
+                    </>
+                )}
+                {building.name === 'Henry Luce Library' && (
+                    <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
+                            {/* Cyberlibrary Box */}
+                            <div
+                                style={{
+                                    background: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    minHeight: expanded['Cyberlibrary'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: 'default',
+                                    opacity: isGuest ? 0.6 : 1,
+                                    transition: 'min-height 0.2s',
+                                }}
+                            >
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Cyberlibrary</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('Cyberlibrary')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['Cyberlibrary'] ? 'Close Cyberlibrary dropdown' : 'Open Cyberlibrary dropdown'}
+                                    >
+                                        {expanded['Cyberlibrary'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['Cyberlibrary'] || ''}
+                                </div>
+                                {expanded['Cyberlibrary'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Cyberlibrary', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Cyberlibrary', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Cyberlibrary', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {/* 2nd Floor Library Box */}
+                            <div
+                                style={{
+                                    background: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    minHeight: expanded['2nd Floor Library'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: 'default',
+                                    opacity: isGuest ? 0.6 : 1,
+                                    transition: 'min-height 0.2s',
+                                }}
+                            >
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>2nd Floor Library</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('2nd Floor Library')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['2nd Floor Library'] ? 'Close 2nd Floor Library dropdown' : 'Open 2nd Floor Library dropdown'}
+                                    >
+                                        {expanded['2nd Floor Library'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['2nd Floor Library'] || ''}
+                                </div>
+                                {expanded['2nd Floor Library'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('2nd Floor Library', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('2nd Floor Library', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('2nd Floor Library', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {/* 3rd Floor Library Box */}
+                            <div
+                                style={{
+                                    background: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    minHeight: expanded['3rd Floor Library'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: 'default',
+                                    opacity: isGuest ? 0.6 : 1,
+                                    transition: 'min-height 0.2s',
+                                }}
+                            >
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>3rd Floor Library</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('3rd Floor Library')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['3rd Floor Library'] ? 'Close 3rd Floor Library dropdown' : 'Open 3rd Floor Library dropdown'}
+                                    >
+                                        {expanded['3rd Floor Library'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['3rd Floor Library'] || ''}
+                                </div>
+                                {expanded['3rd Floor Library'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('3rd Floor Library', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('3rd Floor Library', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('3rd Floor Library', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {/* Activity Room Box */}
+                            <div
+                                style={{
+                                    background: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    minHeight: expanded['Activity Room'] ? '120px' : '60px',
+                                    textAlign: 'left',
+                                    fontWeight: 500,
+                                    color: '#1f2937',
+                                    border: '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'flex-start',
+                                    cursor: 'default',
+                                    opacity: isGuest ? 0.6 : 1,
+                                    transition: 'min-height 0.2s',
+                                }}
+                            >
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Activity Room</div>
+                                    <button
+                                        type="button"
+                                        disabled={isGuest}
+                                        onClick={() => handleToggle('Activity Room')}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            cursor: isGuest ? 'not-allowed' : 'pointer',
+                                            fontSize: '18px',
+                                            lineHeight: '18px',
+                                            fontWeight: 700,
+                                            color: '#1f2937',
+                                            width: '24px',
+                                            height: '24px',
+                                            padding: 0,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        aria-label={expanded['Activity Room'] ? 'Close Activity Room dropdown' : 'Open Activity Room dropdown'}
+                                    >
+                                        {expanded['Activity Room'] ? '⌃' : '⌄'}
+                                    </button>
+                                </div>
+                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
+                                    Status: {areaStatus['Activity Room'] || ''}
+                                </div>
+                                {expanded['Activity Room'] && (
+                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Activity Room', 'Empty')}
+                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Empty
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Activity Room', 'Partially Full')}
+                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Partially Full
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={isGuest}
+                                                onClick={() => handleStatusSelect('Activity Room', 'Full')}
+                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                Full
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </>
                 )}
             </div>
