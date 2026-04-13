@@ -543,19 +543,7 @@
     justify-content: center;
 }
 
-.guest-notice {
-    position: absolute;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(79, 70, 229, 0.9);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    box-shadow: var(--shadow-md);
-    z-index: 100;
-}
+
 
 .guest-restricted {
     display: flex;

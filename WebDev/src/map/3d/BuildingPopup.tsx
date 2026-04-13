@@ -115,58 +115,25 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
     );
 
     return (
-        <div
-            style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                width: '320px',
-                maxHeight: '80vh',
-                background: 'white',
-                borderRadius: '12px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                overflow: 'hidden',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                zIndex: 1000,
-            }}
-        >
-            <div
-                style={{
-                    background: '#2563eb',
-                    color: 'white',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
-                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
-                    {building.name}
-                </h2>
-                <button
-                    onClick={onClose}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'white',
-                        fontSize: '24px',
-                        cursor: 'pointer',
-                        padding: '0 4px',
-                        lineHeight: 1,
-                    }}
-                >
-                    ×
-                </button>
-            </div>
-            <div style={{ height: '1px', background: '#e5e7eb', width: '100%' }} />
+        <div className="events-modal-overlay" onClick={onClose}>
+            <div className="events-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="events-modal-header">
+                    <h2>{building.name}</h2>
+                    <button className="events-modal-close" onClick={onClose}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
 
-            <div style={{ padding: '16px 20px', overflowY: 'auto', maxHeight: 'calc(80vh - 60px)' }}>
+                <div className="events-modal-content">
                 <div style={{ marginBottom: '16px' }}>
                     <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '600', color: '#1f2937', textAlign: 'left' }}>
                         Location
                     </h3>
                     <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', textAlign: 'left' }}>
-                        X: {building.position[0]}, Y: {building.position[1]}, Z: {building.position[2]}
+                        X: {building.position[0].toFixed(3)}, Y: {building.position[1].toFixed(3)}, Z: {building.position[2].toFixed(3)}
                     </p>
                 </div>
                 <div style={{ marginBottom: '16px' }}>
@@ -174,7 +141,7 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                         Size
                     </h3>
                     <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', textAlign: 'left' }}>
-                        Width: {building.size[0]}, Height: {building.size[1]}, Depth: {building.size[2]}
+                        Width: {building.size[0].toFixed(3)}, Height: {building.size[1].toFixed(3)}, Depth: {building.size[2].toFixed(3)}
                     </p>
                 </div>
                 <div style={{ fontWeight: 'bold', fontSize: '15px', textAlign: 'left' }}>Description</div>
@@ -357,6 +324,7 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

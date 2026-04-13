@@ -9,184 +9,222 @@ export interface BuildingLocation {
     categories: string[];
 }
 
-export interface RoomLocation {
-    id: string;
-    name: string;
-    buildingId: string;
-    floor: number;
-    modelPosition: ModelPosition;
-    capacity?: number;
-}
-
 const BUILDING_LOCATIONS: BuildingLocation[] = [
     {
-        id: 'main-building',
-        name: 'Main Building',
-        modelPosition: { x: 0, y: 0, z: 0 },
-        floors: 2,
-        description: 'Central administrative and classroom building',
-        categories: ['academic', 'administration'],
-    },
-    {
-        id: 'library',
-        name: 'Library',
-        modelPosition: { x: 8, y: 0, z: -3 },
+        id: 'Building_Admin',
+        name: 'Admin Building',
+        modelPosition: { x: 9.8, y: 0, z: -7.3 },
         floors: 1,
-        description: 'Central library with study rooms',
-        categories: ['library', 'study'],
-    },
-    {
-        id: 'gymnasium',
-        name: 'Gymnasium',
-        modelPosition: { x: -6, y: 0, z: 5 },
-        floors: 1,
-        description: 'Sports and fitness center',
-        categories: ['sports', 'fitness'],
-    },
-    {
-        id: 'science-building',
-        name: 'Science Building',
-        modelPosition: { x: -8, y: 0, z: -4 },
-        floors: 1,
-        description: 'Science laboratories and classrooms',
-        categories: ['academic', 'science'],
-    },
-    {
-        id: 'canteen',
-        name: 'Canteen',
-        modelPosition: { x: 3, y: 0, z: 5 },
-        floors: 1,
-        description: 'Main campus canteen and food court',
-        categories: ['dining', 'food'],
-    },
-    {
-        id: 'auditorium',
-        name: 'Auditorium',
-        modelPosition: { x: -3, y: 0, z: -6 },
-        floors: 1,
-        description: 'Main auditorium for events and gatherings',
-        categories: ['events', 'venue'],
-    },
-    {
-        id: 'admin-building',
-        name: 'Administration Building',
-        modelPosition: { x: 5, y: 0, z: -7 },
-        floors: 2,
-        description: 'Administrative offices',
+        description: 'Main administrative offices',
         categories: ['administration'],
     },
     {
-        id: 'engineering-building',
-        name: 'Engineering Building',
-        modelPosition: { x: -10, y: 0, z: 2 },
-        floors: 3,
-        description: 'College of Engineering',
+        id: 'Building_Church',
+        name: 'Chapel',
+        modelPosition: { x: -5.6, y: 0, z: 7.9 },
+        floors: 1,
+        description: 'School chapel and religious services',
+        categories: ['chapel', 'religious'],
+    },
+    {
+        id: 'Building_Elementary',
+        name: 'Elementary School',
+        modelPosition: { x: 12.3, y: 0, z: -3.2 },
+        floors: 1,
+        description: 'Elementary school building',
+        categories: ['academic', 'elementary'],
+    },
+    {
+        id: 'Building_Engineering',
+        name: 'College of Engineering',
+        modelPosition: { x: -5.3, y: 0, z: -0.2 },
+        floors: 1,
+        description: 'Engineering and technology facilities',
         categories: ['academic', 'engineering'],
     },
     {
-        id: 'student-center',
-        name: 'Student Center',
-        modelPosition: { x: 2, y: 0, z: 8 },
-        floors: 2,
-        description: 'Student services and activities',
-        categories: ['services', 'student'],
+        id: 'Building_EXCEL',
+        name: 'EXCEL Building',
+        modelPosition: { x: 7.1, y: 0, z: -4.7 },
+        floors: 1,
+        description: 'EXCEL learning center',
+        categories: ['academic', 'learning'],
     },
     {
-        id: 'parking-area',
-        name: 'Parking Area',
-        modelPosition: { x: 12, y: 0, z: 0 },
+        id: 'Building_FranklinHall',
+        name: 'Franklin Hall',
+        modelPosition: { x: -2.0, y: 0, z: -3.6 },
         floors: 1,
-        description: 'Main parking lot',
-        categories: ['parking'],
+        description: 'Academic building',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_HSgym',
+        name: 'High School Gym',
+        modelPosition: { x: -10.1, y: 0, z: -7.9 },
+        floors: 1,
+        description: 'High school gymnasium',
+        categories: ['sports', 'gym'],
+    },
+    {
+        id: 'Building_JohnsonHall',
+        name: 'Johnson Hall',
+        modelPosition: { x: 10.5, y: 0, z: 3.0 },
+        floors: 1,
+        description: 'Residential hall',
+        categories: ['dormitory', 'residential'],
+    },
+    {
+        id: 'Building_JuniorHigh',
+        name: 'Junior High School',
+        modelPosition: { x: -7.1, y: 0, z: -6.4 },
+        floors: 1,
+        description: 'Junior high school building',
+        categories: ['academic', 'juniorhigh'],
+    },
+    {
+        id: 'Building_Kindergarten',
+        name: 'Kindergarten',
+        modelPosition: { x: -4.9, y: 0, z: 9.8 },
+        floors: 1,
+        description: 'Kindergarten building',
+        categories: ['academic', 'kindergarten'],
+    },
+    {
+        id: 'Building_LDT',
+        name: 'LDT Building',
+        modelPosition: { x: 5.4, y: 0, z: 3.3 },
+        floors: 1,
+        description: 'Learning development and training',
+        categories: ['academic', 'training'],
+    },
+    {
+        id: 'Building_LEB',
+        name: 'LEB Building',
+        modelPosition: { x: -5.0, y: 0, z: -10.4 },
+        floors: 1,
+        description: 'Laboratory and evaluation building',
+        categories: ['academic', 'laboratory'],
+    },
+    {
+        id: 'Building_Library',
+        name: 'Henry Luce Library',
+        modelPosition: { x: 3.5, y: 0, z: 6.7 },
+        floors: 1,
+        description: 'Main school library',
+        categories: ['library', 'study'],
+    },
+    {
+        id: 'Building_LopezMemorial',
+        name: 'Lopez Memorial',
+        modelPosition: { x: -3.1, y: 0, z: -10.0 },
+        floors: 1,
+        description: 'Memorial building',
+        categories: ['memorial'],
+    },
+    {
+        id: 'Building_MaryThomas',
+        name: 'Mary Thomas Building',
+        modelPosition: { x: -1.2, y: 0, z: -14.0 },
+        floors: 1,
+        description: 'Academic building',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_NewValentine',
+        name: 'New Valentine',
+        modelPosition: { x: 2.0, y: 0, z: -9.1 },
+        floors: 1,
+        description: 'Valentine building (new)',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_OldValentine',
+        name: 'Old Valentine',
+        modelPosition: { x: 1.0, y: 0, z: -12.0 },
+        floors: 1,
+        description: 'Valentine building (old)',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_Packaging',
+        name: 'Packaging Center',
+        modelPosition: { x: -5.4, y: 0, z: -4.0 },
+        floors: 1,
+        description: 'Packaging and logistics',
+        categories: ['services'],
+    },
+    {
+        id: 'Building_Promenade',
+        name: 'Promenade',
+        modelPosition: { x: 5.4, y: 0, z: -6.2 },
+        floors: 1,
+        description: 'Walkway and promenade area',
+        categories: ['outdoor'],
+    },
+    {
+        id: 'Building_Registrar',
+        name: 'Registrar Office',
+        modelPosition: { x: 7.3, y: 0, z: 3.7 },
+        floors: 1,
+        description: 'Registrar building',
+        categories: ['administration'],
+    },
+    {
+        id: 'Building_Roblee',
+        name: 'Roblee Hall',
+        modelPosition: { x: 0.0, y: 0, z: -6.7 },
+        floors: 1,
+        description: 'Academic hall',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_RoseMemorial',
+        name: 'Rose Memorial Auditorium',
+        modelPosition: { x: 0.4, y: 0, z: 10.2 },
+        floors: 1,
+        description: 'Main auditorium',
+        categories: ['events', 'auditorium'],
+    },
+    {
+        id: 'Building_SeniorHigh',
+        name: 'Senior High School',
+        modelPosition: { x: -7.4, y: 0, z: -11.3 },
+        floors: 1,
+        description: 'Senior high school building',
+        categories: ['academic', 'seniorhigh'],
+    },
+    {
+        id: 'Building_UniversityGym',
+        name: 'University Gym',
+        modelPosition: { x: -2.0, y: 0, z: 14.5 },
+        floors: 1,
+        description: 'University gymnasium',
+        categories: ['sports', 'gym'],
+    },
+    {
+        id: 'Building_Uy',
+        name: 'Uy Building',
+        modelPosition: { x: -3.4, y: 0, z: -6.3 },
+        floors: 1,
+        description: 'Academic building',
+        categories: ['academic'],
+    },
+    {
+        id: 'Building_WestonHall',
+        name: 'Weston Hall',
+        modelPosition: { x: 7.4, y: 0, z: -0.3 },
+        floors: 1,
+        description: 'Residential and academic hall',
+        categories: ['academic', 'residential'],
     },
 ];
 
-const ROOM_LOCATIONS: RoomLocation[] = [
-    {
-        id: 'room-101',
-        name: 'Room 101',
-        buildingId: 'main-building',
-        floor: 1,
-        modelPosition: { x: 0, y: 0, z: 0 },
-        capacity: 40,
-    },
-    {
-        id: 'room-102',
-        name: 'Room 102',
-        buildingId: 'main-building',
-        floor: 1,
-        modelPosition: { x: 1.5, y: 0, z: 0 },
-        capacity: 35,
-    },
-    {
-        id: 'room-103',
-        name: 'Room 103',
-        buildingId: 'main-building',
-        floor: 1,
-        modelPosition: { x: 3, y: 0, z: 0 },
-        capacity: 40,
-    },
-    {
-        id: 'room-201',
-        name: 'Room 201',
-        buildingId: 'main-building',
-        floor: 2,
-        modelPosition: { x: 0, y: 0, z: 0 },
-        capacity: 30,
-    },
-    {
-        id: 'room-202',
-        name: 'Room 202',
-        buildingId: 'main-building',
-        floor: 2,
-        modelPosition: { x: 1.5, y: 0, z: 0 },
-        capacity: 45,
-    },
-    {
-        id: 'lib-reading-1',
-        name: 'Reading Area 1',
-        buildingId: 'library',
-        floor: 1,
-        modelPosition: { x: 8, y: 0, z: -3 },
-        capacity: 50,
-    },
-    {
-        id: 'lib-study-1',
-        name: 'Study Room 1',
-        buildingId: 'library',
-        floor: 1,
-        modelPosition: { x: 10.5, y: 0, z: -3 },
-        capacity: 10,
-    },
-    {
-        id: 'gym-court',
-        name: 'Main Court',
-        buildingId: 'gymnasium',
-        floor: 1,
-        modelPosition: { x: -6, y: 0, z: 5 },
-        capacity: 200,
-    },
-    {
-        id: 'chem-lab',
-        name: 'Chemistry Lab',
-        buildingId: 'science-building',
-        floor: 1,
-        modelPosition: { x: -8, y: 0, z: -4 },
-        capacity: 25,
-    },
-    {
-        id: 'bio-lab',
-        name: 'Biology Lab',
-        buildingId: 'science-building',
-        floor: 1,
-        modelPosition: { x: -6.5, y: 0, z: -4 },
-        capacity: 25,
-    },
-];
+const ROOM_LOCATIONS: { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] = [];
 
 export class BuildingDataService {
     private buildings: BuildingLocation[] = BUILDING_LOCATIONS;
-    private rooms: RoomLocation[] = ROOM_LOCATIONS;
+    private rooms: { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] = ROOM_LOCATIONS;
 
     getAllBuildings(): BuildingLocation[] {
         return this.buildings;
@@ -210,38 +248,31 @@ export class BuildingDataService {
         );
     }
 
-    getAllRooms(): RoomLocation[] {
+    getAllRooms(): { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] {
         return this.rooms;
     }
 
-    getRoomsByBuilding(buildingId: string): RoomLocation[] {
+    getRoomsByBuilding(buildingId: string): { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] {
         return this.rooms.filter(r => r.buildingId === buildingId);
     }
 
-    getRoomsByFloor(buildingId: string, floor: number): RoomLocation[] {
+    getRoomsByFloor(buildingId: string, floor: number): { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] {
         return this.rooms.filter(r => r.buildingId === buildingId && r.floor === floor);
     }
 
-    searchRooms(query: string): RoomLocation[] {
+    searchRooms(query: string): { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] {
         const lowerQuery = query.toLowerCase();
-        return this.rooms.filter(
-            r =>
-                r.name.toLowerCase().includes(lowerQuery) ||
-                this.getBuildingById(r.buildingId)?.name.toLowerCase().includes(lowerQuery)
-        );
+        return this.rooms.filter(r => r.name.toLowerCase().includes(lowerQuery));
     }
 
-    searchAll(query: string): { buildings: BuildingLocation[]; rooms: RoomLocation[] } {
-        const buildings = this.searchBuildings(query);
-        const rooms = this.searchRooms(query);
-        return { buildings, rooms };
+    searchAll(query: string): { buildings: BuildingLocation[]; rooms: { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }[] } {
+        return {
+            buildings: this.searchBuildings(query),
+            rooms: this.searchRooms(query),
+        };
     }
 
-    addBuilding(building: BuildingLocation): void {
-        this.buildings.push(building);
-    }
-
-    addRoom(room: RoomLocation): void {
+    addRoom(room: { id: string; name: string; buildingId: string; floor: number; modelPosition: ModelPosition; capacity?: number; }): void {
         this.rooms.push(room);
     }
 }

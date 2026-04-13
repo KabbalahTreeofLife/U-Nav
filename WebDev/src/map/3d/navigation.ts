@@ -1,4 +1,5 @@
 import type { ModelPosition } from './geolocation';
+import { findPath, isPositionWalkable, type NavigationPath } from './pathfinder';
 
 export interface NavigationWaypoint {
     position: ModelPosition;
@@ -14,6 +15,37 @@ export interface NavigationResult {
 const WALKING_SPEED_MPS = 1.4;
 
 export class NavigationService {
+    calculatePath(
+        start: ModelPosition,
+        end: ModelPosition,
+        useAStar: boolean = true,
+        scaleMetersPerUnit: number = 16.25
+    ): NavigationResult {
+        if (useAStar) {
+            const aStarResult = findPath(start, end);
+            
+            if (aStarResult) {
+                const waypoints: NavigationWaypoint[] = aStarResult.waypoints.map((pos, idx) => ({
+                    position: pos,
+                    instruction: idx === 0 ? 'Start here' : aStarResult.instructions[idx - 1] || `Continue to waypoint ${idx}`,
+                }));
+                
+                waypoints.push({
+                    position: end,
+                    instruction: `You have arrived at your destination`,
+                });
+
+                return {
+                    waypoints,
+                    totalDistanceMeters: aStarResult.totalDistance,
+                    estimatedTimeMinutes: Math.ceil(aStarResult.totalDistance / (WALKING_SPEED_MPS * 60)),
+                };
+            }
+        }
+
+        return this.calculateStraightLinePath(start, end, scaleMetersPerUnit);
+    }
+
     calculateStraightLinePath(
         start: ModelPosition,
         end: ModelPosition,
