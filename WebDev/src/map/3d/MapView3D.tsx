@@ -88,6 +88,21 @@ export const MapView3D: React.FC = () => {
         }
     }, [searchQuery]);
 
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const searchBar = document.querySelector('.map-search-bar');
+            const dropdown = document.querySelector('.search-results-dropdown');
+            
+            if (searchBar && !searchBar.contains(target) && (!dropdown || !dropdown.contains(target))) {
+                setShowSearchResults(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const INDOOR_THRESHOLD_METERS = 20;
 
     const findNearestBuildingAndCheckIndoor = useCallback((modelPos: ModelPosition) => {
@@ -146,7 +161,7 @@ export const MapView3D: React.FC = () => {
                         findNearestBuildingAndCheckIndoor(modelPos);
 
                         if (destinationPosition) {
-                            const navResult = navigationService.calculateStraightLinePath(modelPos, destinationPosition, SCALE_METERS_PER_UNIT);
+                            const navResult = navigationService.calculatePath(modelPos, destinationPosition, true, SCALE_METERS_PER_UNIT);
                             setNavigationInfo(navResult);
                         }
                     },
@@ -192,7 +207,7 @@ export const MapView3D: React.FC = () => {
         setSearchQuery(name);
 
         if (userPosition) {
-            const navResult = navigationService.calculateStraightLinePath(userPosition, position, SCALE_METERS_PER_UNIT);
+            const navResult = navigationService.calculatePath(userPosition, position, true, SCALE_METERS_PER_UNIT);
             setNavigationInfo(navResult);
         }
     }, [userPosition]);
@@ -266,7 +281,10 @@ export const MapView3D: React.FC = () => {
                                         <div 
                                             key={building.id}
                                             className="search-result-item"
-                                            onClick={() => handleSelectDestination(building)}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                handleSelectDestination(building);
+                                            }}
                                         >
                                             <span className="result-icon">🏢</span>
                                             <div className="result-info">
@@ -286,7 +304,10 @@ export const MapView3D: React.FC = () => {
                                             <div 
                                                 key={room.id}
                                                 className="search-result-item"
-                                                onClick={() => handleSelectDestination(room)}
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault();
+                                                    handleSelectDestination(room);
+                                                }}
                                             >
                                                 <span className="result-icon">🚪</span>
                                                 <div className="result-info">
@@ -420,15 +441,11 @@ export const MapView3D: React.FC = () => {
                         destinationPosition={destinationPosition}
                         destinationName={destinationName}
                         showUserDot={isTrackingGPS}
+                        navigationWaypoints={navigationInfo?.waypoints.map(wp => wp.position) ?? null}
+                        disableControls={showSearchResults}
                     />
                 )}
             </div>
-
-            {isGuest && (
-                <div className="guest-notice">
-                    Guest mode: Building details are limited. Login for full access.
-                </div>
-            )}
 
             {showEvents && (
                 <EventsModal 

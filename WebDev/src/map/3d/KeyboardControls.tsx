@@ -19,7 +19,16 @@ export const KeyboardControls: React.FC<KeyboardControlsProps> = ({
     const internalRef = useRef<any>(null);
     const controlsRef = orbitControlsRef || internalRef;
 
+    const isInputActive = (): boolean => {
+        const active = document.activeElement;
+        return active?.tagName === 'INPUT' || 
+               active?.tagName === 'TEXTAREA' || 
+               active?.getAttribute('contenteditable') === 'true' ||
+               active?.closest('.search-results-dropdown') !== null;
+    };
+
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (isInputActive()) return;
         keysPressed.current.add(e.code);
     }, []);
 
@@ -40,7 +49,7 @@ export const KeyboardControls: React.FC<KeyboardControlsProps> = ({
     }, [enabled, handleKeyDown, handleKeyUp]);
 
     useFrame(() => {
-        if (!enabled || keysPressed.current.size === 0) return;
+        if (!enabled || keysPressed.current.size === 0 || isInputActive()) return;
 
         const keys = keysPressed.current;
         let moveX = 0;

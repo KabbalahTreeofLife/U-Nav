@@ -84,12 +84,12 @@ export const DestinationMarker: React.FC<DestinationMarkerProps> = ({
 
     return (
         <group ref={groupRef} onClick={onClick}>
-            <mesh>
-                <sphereGeometry args={[0.4, 16, 16]} />
+            <mesh position={[0, 0.6, 0]} scale={[0.6, 1.4, 0.6]} rotation={[0, Math.PI, 0]}>
+                <octahedronGeometry args={[0.4, 0]} />
                 <meshStandardMaterial color="#ef4444" />
             </mesh>
 
-            <Html position={[0, 1, 0]} center>
+            <Html position={[0, 1.2, 0]} center>
                 <div style={{
                     background: 'rgba(239, 68, 68, 0.9)',
                     color: 'white',
@@ -109,16 +109,50 @@ export const DestinationMarker: React.FC<DestinationMarkerProps> = ({
 interface PathLineProps {
     points: ModelPosition[];
     color?: string;
+    lineWidth?: number;
 }
 
-export const PathLine: React.FC<PathLineProps> = ({ points, color = '#ef4444' }) => {
+export const PathLine: React.FC<PathLineProps> = ({ points, color = '#ef4444', lineWidth = 2 }) => {
     if (points.length < 2) return null;
 
-    const linePoints = points.map(p => new THREE.Vector3(p.x, 1, p.z));
-    const geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+    const elevatedPoints = points.map((p, i) => {
+        const y = i === 0 ? 0.15 : 0.15;
+        return new THREE.Vector3(p.x, y, p.z);
+    });
+
+    const curve = new THREE.CatmullRomCurve3(elevatedPoints);
+    const curvePoints = curve.getPoints(points.length * 5);
+    const geometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
 
     return (
-        <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color, linewidth: 3 }))} />
+        <line>
+            <bufferGeometry attach="geometry">
+                <bufferAttribute
+                    attach="attributes-position"
+                    count={curvePoints.length}
+                    array={new Float32Array(curvePoints.flatMap(p => [p.x, p.y, p.z]))}
+                    itemSize={3}
+                />
+            </bufferGeometry>
+            <lineBasicMaterial color={color} linewidth={lineWidth} />
+        </line>
+    );
+};
+
+export const PathDots: React.FC<{ points: ModelPosition[]; color?: string }> = ({ points, color = '#fbbf24' }) => {
+    if (points.length < 2) return null;
+
+    return (
+        <>
+            {points.slice(1, -1).map((point, idx) => (
+                <group key={idx} position={[point.x, 0.2, point.z]}>
+                    <mesh>
+                        <circleGeometry args={[0.15, 16]} />
+                        <meshBasicMaterial color={color} side={THREE.DoubleSide} />
+                    </mesh>
+                </group>
+            ))}
+        </>
     );
 };
 
