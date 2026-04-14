@@ -13,9 +13,18 @@ const USER_SELECT_QUERY = `
 
 const USER_RETURN_QUERY = 'RETURNING id, email, username, university_id, role';
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
-        const result = await query(`${USER_SELECT_QUERY} ORDER BY u.created_at DESC`);
+        let sql = USER_SELECT_QUERY;
+        const params: any[] = [];
+
+        if (!req.isGlobalAdmin && req.userUniversityId) {
+            sql += ' WHERE u.university_id = $1';
+            params.push(req.userUniversityId);
+        }
+
+        sql += ' ORDER BY u.created_at DESC';
+        const result = await query(sql, params);
         const users = result.rows.map((row) => mapUserRow(row));
         res.json({ users });
     } catch (error) {
@@ -24,7 +33,7 @@ router.get('/', async (_req: Request, res: Response) => {
     }
 });
 
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
         const result = await query(`${USER_SELECT_QUERY} WHERE u.id = $1`, [id]);
@@ -34,7 +43,14 @@ router.get('/:id', async (req: Request, res: Response) => {
             return;
         }
 
-        const user = mapUserRow(result.rows[0]);
+        const userRow = result.rows[0];
+        
+        if (!req.isGlobalAdmin && req.userUniversityId !== userRow.university_id) {
+            res.status(403).json({ error: 'Forbidden: You can only view users from your university' });
+            return;
+        }
+
+        const user = mapUserRow(userRow);
         res.json({ user });
     } catch (error) {
         console.error('Get user error:', error);

@@ -21,6 +21,8 @@ _Campus navigation application for universities._
 | Feature | Description |
 |---------|-------------|
 | 🗺️ **Campus Map** | Interactive 3D/2D map with building navigation |
+| 🎯 **Pathfinding** | Intelligent navigation using simple pathfinding to avoid obstacles |
+| 🎥 **Smart Camera** | Auto-centering on user with restricted world boundaries |
 | 🔥 **Heat Map** | Toggle overlay showing crowd density |
 | 📅 **Events** | Browse university events by category, date, and location |
 | 🍽️ **Dining Guide** | Discover campus restaurants, cafes, and eateries |
@@ -160,14 +162,16 @@ U-Nav/
 │
 ├── WebDev/              # React frontend
 │   ├── src/
-│   │   ├── api/        # API service layer
-│   │   ├── common/      # Shared components & hooks
-│   │   ├── login-signup/  # Authentication pages
-│   │   ├── map/        # Map view & controls
-│   │   ├── dining/     # Dining guide
-│   │   ├── about/      # About page
-│   │   ├── admin/      # Admin dashboard
-│   │   └── css/        # Stylesheets
+│   │   ├── api/        # API service layer (auth, universities)
+│   │   ├── common/      # Reusable components, hooks, and context
+│   │   ├── login-signup/  # Auth views and validation logic
+│   │   ├── map/        # 2D & 3D Map implementation
+│   │   │   ├── 2d/     # 2D Map views
+│   │   │   └── 3d/     # 3D Scene, simple pathfinding engine, and camera controls
+│   │   ├── dining/     # Dining guide module
+│   │   ├── about/      # About & University info
+│   │   ├── admin/      # Admin control panel
+│   │   └── css/        # Feature-based stylesheets
 │   └── package.json
 │
 ├── Database/            # SQL schema

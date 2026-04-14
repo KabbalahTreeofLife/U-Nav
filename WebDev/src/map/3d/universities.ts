@@ -12,7 +12,13 @@ export const DEFAULT_MAP_CONFIG: MapConfig = {
     cameraPosition: [15, 15, 15],
     cameraTarget: [0, 0, 0],
     zoomLevel: 1,
+    originLat: 10.730865,
+    originLon: 122.548580,
+    metersPerUnit: 16.25,
 };
+
+// GLB Scale helper for calculations
+const S = 11.523;
 
 export const UNIVERSITY_MAPS: UniversityMap[] = [
     {
@@ -21,130 +27,34 @@ export const UNIVERSITY_MAPS: UniversityMap[] = [
         glbFile: '/models/CentralMap.glb',
         config: DEFAULT_MAP_CONFIG,
         buildings: [
-            {
-                id: 'main-building',
-                name: 'Main Building',
-                position: [0, 0, 0],
-                size: [4, 3, 6],
-                floors: [
-                    {
-                        id: 'main-building-floor-1',
-                        floorNumber: 1,
-                        rooms: [
-                            { id: 'room-101', name: 'Room 101', position: { x: 0, y: 0, width: 1, height: 1 }, subject: 'Mathematics 1', stubCode: 'MATH 101', section: 'A', teacher: 'Prof. Juan Dela Cruz', capacity: 40, currentOccupancy: 35 },
-                            { id: 'room-102', name: 'Room 102', position: { x: 1.5, y: 0, width: 1, height: 1 }, subject: 'English 1', stubCode: 'ENG 101', section: 'A', teacher: 'Prof. Maria Santos', capacity: 35, currentOccupancy: 30 },
-                            { id: 'room-103', name: 'Room 103', position: { x: 3, y: 0, width: 1, height: 1 }, subject: 'Physics 1', stubCode: 'PHYS 101', section: 'A', teacher: 'Prof. Pedro Reyes', capacity: 40, currentOccupancy: 20 },
-                        ],
-                    },
-                    {
-                        id: 'main-building-floor-2',
-                        floorNumber: 2,
-                        rooms: [
-                            { id: 'room-201', name: 'Room 201', position: { x: 0, y: 0, width: 1, height: 1 }, subject: 'Computer Science 1', stubCode: 'CS 101', section: 'A', teacher: 'Prof. Ana Garcia', capacity: 30, currentOccupancy: 28 },
-                            { id: 'room-202', name: 'Room 202', position: { x: 1.5, y: 0, width: 1, height: 1 }, subject: 'History 1', stubCode: 'HIST 101', section: 'A', teacher: 'Prof. Jose Cruz', capacity: 45, currentOccupancy: 40 },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'library',
-                name: 'Library',
-                position: [8, 0, -3],
-                size: [3, 2, 4],
-                floors: [
-                    {
-                        id: 'library-floor-1',
-                        floorNumber: 1,
-                        rooms: [
-                            { id: 'lib-room-1', name: 'Reading Area 1', position: { x: 0, y: 0, width: 2, height: 2 }, capacity: 50, currentOccupancy: 45 },
-                            { id: 'lib-room-2', name: 'Study Room 1', position: { x: 2.5, y: 0, width: 1, height: 1 }, capacity: 10, currentOccupancy: 8 },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'gymnasium',
-                name: 'Gymnasium',
-                position: [-6, 0, 5],
-                size: [5, 1.5, 4],
-                floors: [
-                    {
-                        id: 'gym-floor-1',
-                        floorNumber: 1,
-                        rooms: [
-                            { id: 'gym-court', name: 'Main Court', position: { x: 0, y: 0, width: 4, height: 3 }, capacity: 200, currentOccupancy: 150 },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'science-building',
-                name: 'Science Building',
-                position: [-8, 0, -4],
-                size: [3.5, 2.5, 5],
-                floors: [
-                    {
-                        id: 'science-floor-1',
-                        floorNumber: 1,
-                        rooms: [
-                            { id: 'lab-101', name: 'Chemistry Lab', position: { x: 0, y: 0, width: 1.5, height: 1.5 }, subject: 'Chemistry 1', stubCode: 'CHEM 101', section: 'A', teacher: 'Prof. Lisa Wong', capacity: 25, currentOccupancy: 22 },
-                            { id: 'lab-102', name: 'Biology Lab', position: { x: 2, y: 0, width: 1.5, height: 1.5 }, subject: 'Biology 1', stubCode: 'BIO 101', section: 'A', teacher: 'Prof. Mark Lee', capacity: 25, currentOccupancy: 18 },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: 'canteen',
-                name: 'Canteen',
-                position: [3, 0, 5],
-                size: [4, 1, 3],
-                floors: [
-                    {
-                        id: 'canteen-floor-1',
-                        floorNumber: 1,
-                        rooms: [
-                            { id: 'canteen-1', name: 'Food Court A', position: { x: 0, y: 0, width: 2, height: 2 }, capacity: 100, currentOccupancy: 80 },
-                            { id: 'canteen-2', name: 'Food Court B', position: { x: 2.5, y: 0, width: 2, height: 2 }, capacity: 100, currentOccupancy: 65 },
-                        ],
-                    },
-                ],
-            },
+            { id: 'Building_Admin', name: 'Admin Building', description: 'Main administrative offices', position: [0.851 * S, 0, -0.634 * S], size: [0.4 * S, 0.3 * S, 0.4 * S], floors: [] },
+            { id: 'Building_Background', name: 'Background', description: 'Background area', position: [0.398 * S, 0, 0.824 * S], size: [2 * S, 0.5 * S, 1.5 * S], floors: [] },
+            { id: 'Building_Church', name: 'Chapel', description: 'School chapel and religious services', position: [-0.483 * S, 0, 0.689 * S], size: [0.5 * S, 0.4 * S, 0.4 * S], floors: [] },
+            { id: 'Building_Elementary', name: 'Elementary School', description: 'Elementary school building', position: [1.066 * S, 0, -0.277 * S], size: [0.6 * S, 0.4 * S, 0.5 * S], floors: [] },
+            { id: 'Building_Engineering', name: 'College of Engineering', description: 'Engineering and technology facilities', position: [-0.461 * S, 0, -0.014 * S], size: [0.7 * S, 0.5 * S, 0.6 * S], floors: [] },
+            { id: 'Building_EXCEL', name: 'EXCEL Building', description: 'EXCEL learning center', position: [0.62 * S, 0, -0.407 * S], size: [0.4 * S, 0.3 * S, 0.4 * S], floors: [] },
+            { id: 'Building_FranklinHall', name: 'Franklin Hall', description: 'Academic building', position: [-0.171 * S, 0, -0.315 * S], size: [0.5 * S, 0.35 * S, 0.4 * S], floors: [] },
+            { id: 'Building_HSgym', name: 'High School Gym', description: 'High school gymnasium', position: [-0.873 * S, 0, -0.682 * S], size: [0.7 * S, 0.5 * S, 0.6 * S], floors: [] },
+            { id: 'Building_JohnsonHall', name: 'Johnson Hall', description: 'Residential hall', position: [0.911 * S, 0, 0.261 * S], size: [0.4 * S, 0.35 * S, 0.5 * S], floors: [] },
+            { id: 'Building_JuniorHigh', name: 'Junior High School', description: 'Junior high school building', position: [-0.615 * S, 0, -0.558 * S], size: [0.7 * S, 0.45 * S, 0.6 * S], floors: [] },
+            { id: 'Building_Kindergarten', name: 'Kindergarten', description: 'Kindergarten building', position: [-0.422 * S, 0, 0.855 * S], size: [0.5 * S, 0.35 * S, 0.4 * S], floors: [] },
+            { id: 'Building_LDT', name: 'LDT Building', description: 'Learning development and training', position: [0.469 * S, 0, 0.285 * S], size: [0.4 * S, 0.3 * S, 0.4 * S], floors: [] },
+            { id: 'Building_LEB', name: 'LEB Building', description: 'Laboratory and evaluation building', position: [-0.437 * S, 0, -0.902 * S], size: [0.5 * S, 0.35 * S, 0.4 * S], floors: [] },
+            { id: 'Building_Library', name: 'Henry Luce Library', description: 'Main school library', position: [0.307 * S, 0, 0.586 * S], size: [0.5 * S, 0.45 * S, 0.5 * S], floors: [] },
+            { id: 'Building_LopezMemorial', name: 'Lopez Memorial', description: 'Memorial building', position: [-0.272 * S, 0, -0.866 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_MaryThomas', name: 'Mary Thomas Building', description: 'Academic building', position: [-0.1 * S, 0, -1.212 * S], size: [0.5 * S, 0.35 * S, 0.4 * S], floors: [] },
+            { id: 'Building_NewValentine', name: 'New Valentine', description: 'Valentine building (new)', position: [0.176 * S, 0, -0.789 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_OldValentine', name: 'Old Valentine', description: 'Valentine building (old)', position: [0.083 * S, 0, -1.046 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_Packaging', name: 'Packaging Center', description: 'Packaging and logistics', position: [-0.471 * S, 0, -0.347 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_Promenade', name: 'Promenade', description: 'Walkway and promenade area', position: [0.471 * S, 0, -0.541 * S], size: [0.35 * S, 0.2 * S, 0.35 * S], floors: [] },
+            { id: 'Building_Registrar', name: 'Registrar Office', description: 'Registrar building', position: [0.631 * S, 0, 0.321 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_Roblee', name: 'Roblee Hall', description: 'Academic hall', position: [0.001 * S, 0, -0.581 * S], size: [0.5 * S, 0.35 * S, 0.4 * S], floors: [] },
+            { id: 'Building_RoseMemorial', name: 'Rose Memorial Auditorium', description: 'Main auditorium', position: [0.039 * S, 0, 0.888 * S], size: [0.5 * S, 0.45 * S, 0.5 * S], floors: [] },
+            { id: 'Building_SeniorHigh', name: 'Senior High School', description: 'Senior high school building', position: [-0.643 * S, 0, -0.98 * S], size: [0.7 * S, 0.5 * S, 0.6 * S], floors: [] },
+            { id: 'Building_UniversityGym', name: 'University Gym', description: 'University gymnasium', position: [-0.177 * S, 0, 1.257 * S], size: [0.7 * S, 0.5 * S, 0.6 * S], floors: [] },
+            { id: 'Building_Uy', name: 'Uy Building', description: 'Academic building', position: [-0.294 * S, 0, -0.544 * S], size: [0.35 * S, 0.3 * S, 0.35 * S], floors: [] },
+            { id: 'Building_WestonHall', name: 'Weston Hall', description: 'Residential and academic hall', position: [0.643 * S, 0, -0.029 * S], size: [0.4 * S, 0.35 * S, 0.5 * S], floors: [] },
         ],
-    },
-    {
-        id: 2,
-        name: 'West Visayas State University',
-        glbFile: '',
-        config: DEFAULT_MAP_CONFIG,
-        buildings: [],
-    },
-    {
-        id: 3,
-        name: 'University of the Philippines Visayas',
-        glbFile: '',
-        config: DEFAULT_MAP_CONFIG,
-        buildings: [],
-    },
-    {
-        id: 4,
-        name: 'Western Institute of Technology',
-        glbFile: '',
-        config: DEFAULT_MAP_CONFIG,
-        buildings: [],
-    },
-    {
-        id: 5,
-        name: 'University of San Agustin',
-        glbFile: '',
-        config: DEFAULT_MAP_CONFIG,
-        buildings: [],
-    },
-    {
-        id: 6,
-        name: 'Institute of Science and Technology University',
-        glbFile: '',
-        config: DEFAULT_MAP_CONFIG,
-        buildings: [],
     },
 ];
 
@@ -160,36 +70,9 @@ export const GUEST_BUILDINGS: Building[] = [
     {
         id: 'guest-main-building',
         name: 'Main Building',
+        description: 'Default main building for guests',
         position: [0, 0, 0],
         size: [4, 3, 6],
-        floors: [],
-    },
-    {
-        id: 'guest-library',
-        name: 'Library',
-        position: [8, 0, -3],
-        size: [3, 2, 4],
-        floors: [],
-    },
-    {
-        id: 'guest-gymnasium',
-        name: 'Gymnasium',
-        position: [-6, 0, 5],
-        size: [5, 1.5, 4],
-        floors: [],
-    },
-    {
-        id: 'guest-science-building',
-        name: 'Science Building',
-        position: [-8, 0, -4],
-        size: [3.5, 2.5, 5],
-        floors: [],
-    },
-    {
-        id: 'guest-canteen',
-        name: 'Canteen',
-        position: [3, 0, 5],
-        size: [4, 1, 3],
         floors: [],
     },
 ];

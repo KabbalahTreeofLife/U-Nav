@@ -77,11 +77,10 @@ export const diningApi = {
         return { success: false, error: result.data?.error || 'Failed to fetch dining location' };
     },
 
-    createLocation: async (location: CreateDiningRequest, userId: number): Promise<ResponseResult<DiningLocation>> => {
+    createLocation: async (location: CreateDiningRequest, _userId?: number): Promise<ResponseResult<DiningLocation>> => {
         const result = await apiClient.post<DiningResponse>(
             API_ENDPOINTS.DINING.CREATE, 
-            location,
-            { headers: { 'x-user-id': userId.toString() } }
+            location
         ) as DiningApiResult<DiningResponse>;
         if (result.success && result.data?.data?.location) {
             return { success: true, data: result.data.data.location };
@@ -89,11 +88,10 @@ export const diningApi = {
         return { success: false, error: result.data?.error || 'Failed to create dining location' };
     },
 
-    updateLocation: async (id: number, location: UpdateDiningRequest, userId: number): Promise<ResponseResult<DiningLocation>> => {
+    updateLocation: async (id: number, location: UpdateDiningRequest, _userId?: number): Promise<ResponseResult<DiningLocation>> => {
         const result = await apiClient.put<DiningResponse>(
             API_ENDPOINTS.DINING.UPDATE(id), 
-            location,
-            { headers: { 'x-user-id': userId.toString() } }
+            location
         ) as DiningApiResult<DiningResponse>;
         if (result.success && result.data?.data?.location) {
             return { success: true, data: result.data.data.location };
@@ -101,10 +99,9 @@ export const diningApi = {
         return { success: false, error: result.data?.error || 'Failed to update dining location' };
     },
 
-    deleteLocation: async (id: number, userId: number): Promise<ResponseResult<void>> => {
+    deleteLocation: async (id: number, _userId?: number): Promise<ResponseResult<void>> => {
         return apiClient.delete<void>(
-            API_ENDPOINTS.DINING.DELETE(id),
-            { headers: { 'x-user-id': userId.toString() } }
+            API_ENDPOINTS.DINING.DELETE(id)
         );
     },
 };

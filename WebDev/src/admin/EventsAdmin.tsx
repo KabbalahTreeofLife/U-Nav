@@ -22,6 +22,7 @@ interface EventFormData {
   organizer: string;
   category: EventCategory;
   universityId: number;
+  isPinned: boolean;
 }
 
 const initialFormData: EventFormData = {
@@ -33,6 +34,7 @@ const initialFormData: EventFormData = {
   organizer: '',
   category: 'academic',
   universityId: 1,
+  isPinned: false,
 };
 
 export const EventsAdmin: React.FC = () => {
@@ -82,9 +84,11 @@ export const EventsAdmin: React.FC = () => {
     return matchesSearch && matchesCategory && matchesUniversity;
   });
 
-  const sortedEvents = [...filteredEvents].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
 
   const openAddModal = () => {
     const defaultUniversityId = isGlobalAdmin 
@@ -106,6 +110,7 @@ export const EventsAdmin: React.FC = () => {
       organizer: event.organizer,
       category: event.category,
       universityId: event.universityId || 1,
+      isPinned: event.isPinned || false,
     });
     setEditingId(event.id);
     setEditingDbId(event.isFromDb ? parseInt(event.id.replace('db-', '')) : null);
@@ -133,6 +138,7 @@ export const EventsAdmin: React.FC = () => {
           time: formData.time,
           organizer: formData.organizer,
           category: formData.category,
+          isPinned: formData.isPinned,
         };
 
         if (editingDbId) {
@@ -163,6 +169,7 @@ export const EventsAdmin: React.FC = () => {
           time: formData.time,
           organizer: formData.organizer,
           category: formData.category,
+          isPinned: formData.isPinned,
         };
 
         const result = await eventsApi.createEvent(createData, user?.id || 0);
@@ -179,6 +186,17 @@ export const EventsAdmin: React.FC = () => {
       console.error('Error saving event:', err);
     }
     setActionLoading(false);
+  };
+
+  const handleTogglePin = async (event: Event) => {
+    if (!event.isFromDb) return;
+    const dbId = parseInt(event.id.replace('db-', ''));
+    const result = await eventsApi.updateEvent(dbId, { isPinned: !event.isPinned }, user?.id || 0);
+    if (result.success) {
+      await fetchEvents();
+    } else {
+      alert(result.error);
+    }
   };
 
   const handleDelete = async (id: string, isFromDb: boolean) => {
@@ -297,9 +315,16 @@ export const EventsAdmin: React.FC = () => {
             </thead>
             <tbody>
               {sortedEvents.map((event) => (
-                <tr key={event.id}>
+                <tr key={event.id} style={event.isPinned ? { background: 'rgba(245, 158, 11, 0.05)' } : {}}>
                   <td>
-                    <strong>{event.title}</strong>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      {event.isPinned && (
+                        <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="2" width="14" height="14">
+                          <path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z" />
+                        </svg>
+                      )}
+                      <strong>{event.title}</strong>
+                    </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                       {event.description.length > 60 ? `${event.description.slice(0, 60)}...` : event.description}
                     </div>
@@ -317,6 +342,18 @@ export const EventsAdmin: React.FC = () => {
                   </td>
                   <td>
                     <div className="admin-actions">
+                      {event.isFromDb && (
+                        <button
+                          className="admin-btn-icon"
+                          onClick={() => handleTogglePin(event)}
+                          title={event.isPinned ? 'Unpin' : 'Pin to top'}
+                          style={event.isPinned ? { color: '#f59e0b', borderColor: '#f59e0b' } : {}}
+                        >
+                          <svg viewBox="0 0 24 24" fill={event.isPinned ? '#f59e0b' : 'none'} stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z" />
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="admin-btn-icon success"
                         onClick={() => openEditModal(event)}
@@ -473,6 +510,22 @@ export const EventsAdmin: React.FC = () => {
                       placeholder="e.g., 9:00 AM - 5:00 PM"
                     />
                   </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
+                  <input
+                    type="checkbox"
+                    id="isPinned"
+                    checked={formData.isPinned}
+                    onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#f59e0b' }}
+                  />
+                  <label htmlFor="isPinned" style={{ cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <svg viewBox="0 0 24 24" fill={formData.isPinned ? '#f59e0b' : 'none'} stroke="#f59e0b" strokeWidth="2" width="16" height="16">
+                      <path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z" />
+                    </svg>
+                    Pin this event to the top
+                  </label>
                 </div>
               </div>
               <div className="admin-modal-footer">

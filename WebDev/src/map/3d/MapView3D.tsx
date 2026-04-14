@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { TopNav, BottomNav, useUniversities } from '../../common';
 import { CampusScene } from './CampusScene';
 import { getUniversityMap, getDefaultMap, type UniversityMap } from './universities';
@@ -10,8 +10,10 @@ import { UniversityDropdownSelect } from '../../common/UniversityDropdownSelect'
 import { geolocationService, type GPSPosition, type ModelPosition } from './geolocation';
 import { coordinateTransformer } from './coordinateTransform';
 import { buildingDataService, type BuildingLocation, type RoomLocation } from './buildingData';
+import { pathfinder } from './pathfinder';
 import { navigationService, type NavigationResult } from './navigation';
 import { BuildingPopup } from './BuildingPopup';
+import type { Building } from './types';
 import '../../css/Map/Map.css';
 
 const getCategoryColor = (category: string): string => {
@@ -30,8 +32,12 @@ const getCategoryLabel = (category: string): string => {
 
 const SCALE_METERS_PER_UNIT = 16.25;
 
+/**
+ * MapView3D is the primary view for the 3D campus navigation experience.
+ * It integrates the 3D scene (CampusScene), real-time geolocation tracking,
+ * destination searching, and navigation routing.
+ */
 export const MapView3D: React.FC = () => {
-    const navigate = useNavigate();
     const location = useLocation();
     const { isGuest, universityId, isGlobalAdmin } = useAuth();
     const { universities } = useUniversities();
@@ -41,6 +47,7 @@ export const MapView3D: React.FC = () => {
         return (location.state as { viewMode?: 'perspective' | 'topdown' })?.viewMode === 'topdown' ? 'topdown' : 'perspective';
     });
     const [events, setEvents] = useState<Event[]>([]);
+    const [centerTrigger, setCenterTrigger] = useState(0);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<{ buildings: BuildingLocation[]; rooms: RoomLocation[] }>({ buildings: [], rooms: [] });
@@ -59,8 +66,12 @@ export const MapView3D: React.FC = () => {
     const [isIndoor, setIsIndoor] = useState(false);
     const [selectedBuildingFrom3D, setSelectedBuildingFrom3D] = useState<Building | null>(null);
 
+    // Determine which university context to use based on user role and selection
     const effectiveUniversityId = isGlobalAdmin ? selectedUniversityId : (universityId || 1);
 
+    /**
+     * Fetches the current university's map data and configuration.
+     */
     const universityMap: UniversityMap = useMemo(() => {
         if (!effectiveUniversityId || effectiveUniversityId === 0) {
             return getDefaultMap();
@@ -72,6 +83,20 @@ export const MapView3D: React.FC = () => {
     const glbUrl = universityMap.glbFile || undefined;
     const showPlaceholder = !universityMap.glbFile;
 
+    /**
+     * Syncs services with the latest university map configuration.
+     */
+    useEffect(() => {
+        if (universityMap && universityMap.config) {
+            coordinateTransformer.updateFromMapConfig(universityMap.config);
+            buildingDataService.setUniversityId(universityMap.id);
+            pathfinder.setUniversityId(universityMap.id);
+        }
+    }, [universityMap]);
+
+    /**
+     * Fetches university-specific events from the API.
+     */
     useEffect(() => {
         const fetchEvents = async () => {
             const result = await eventsApi.getEvents(effectiveUniversityId);
@@ -82,17 +107,37 @@ export const MapView3D: React.FC = () => {
         fetchEvents();
     }, [effectiveUniversityId]);
 
+    const searchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    /**
+     * Debounced search logic for buildings and rooms.
+     */
     useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
         if (searchQuery.trim().length > 0) {
-            const results = buildingDataService.searchAll(searchQuery);
-            setSearchResults(results);
-            setShowSearchResults(true);
+            searchTimeoutRef.current = setTimeout(() => {
+                const results = buildingDataService.searchAll(searchQuery);
+                setSearchResults(results);
+                setShowSearchResults(true);
+            }, 300);
         } else {
             setSearchResults({ buildings: [], rooms: [] });
             setShowSearchResults(false);
         }
+
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
     }, [searchQuery]);
 
+    /**
+     * Listens for clicks outside the search bar to close the dropdown.
+     */
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -110,6 +155,9 @@ export const MapView3D: React.FC = () => {
 
     const INDOOR_THRESHOLD_METERS = 20;
 
+    /**
+     * Determines if the user is close enough to a building to be considered "indoors".
+     */
     const findNearestBuildingAndCheckIndoor = useCallback((modelPos: ModelPosition) => {
         const buildings = buildingDataService.getAllBuildings();
         let nearest: BuildingLocation | null = null;
@@ -134,6 +182,9 @@ export const MapView3D: React.FC = () => {
         return nearest;
     }, []);
 
+    /**
+     * Main Effect for Geolocation: Starts tracking and syncs GPS to 3D positions.
+     */
     useEffect(() => {
         if (isGuest) return;
 
@@ -145,10 +196,12 @@ export const MapView3D: React.FC = () => {
 
         const startAutoGPS = async () => {
             try {
+                // Get high-accuracy initial position
                 const initialPosition = await geolocationService.getCurrentPosition();
                 setGpsError(null);
                 setUserGPS(initialPosition);
                 
+                // Convert to Three.js coordinates
                 const modelPos = coordinateTransformer.gpsToModel({
                     latitude: initialPosition.latitude,
                     longitude: initialPosition.longitude,
@@ -158,21 +211,17 @@ export const MapView3D: React.FC = () => {
                 setGpsPermission('granted');
                 setIsTrackingGPS(true);
 
+                // Start active watching
                 geolocationService.watchPosition(
                     (gpsPos) => {
                         setGpsError(null);
                         setUserGPS(gpsPos);
-                        const modelPos = coordinateTransformer.gpsToModel({
+                        const mPos = coordinateTransformer.gpsToModel({
                             latitude: gpsPos.latitude,
                             longitude: gpsPos.longitude,
                         });
-                        setUserPosition(modelPos);
-                        findNearestBuildingAndCheckIndoor(modelPos);
-
-                        if (destinationPosition) {
-                            const navResult = navigationService.calculatePath(modelPos, destinationPosition, true, SCALE_METERS_PER_UNIT);
-                            setNavigationInfo(navResult);
-                        }
+                        setUserPosition(mPos);
+                        findNearestBuildingAndCheckIndoor(mPos);
                     },
                     (error) => {
                         setGpsError(error);
@@ -193,7 +242,7 @@ export const MapView3D: React.FC = () => {
         return () => {
             geolocationService.stopWatching();
         };
-    }, [destinationPosition, findNearestBuildingAndCheckIndoor]);
+    }, [findNearestBuildingAndCheckIndoor]);
 
     const handleSelectDestination = useCallback((building: BuildingLocation | RoomLocation) => {
         setSelectedDestination(building);
@@ -216,6 +265,10 @@ export const MapView3D: React.FC = () => {
         setSearchQuery(name);
     }, []);
 
+    /**
+     * Dynamically recalculates the navigation path whenever the user's position
+     * or the selected destination changes.
+     */
     useEffect(() => {
         if (userPosition && destinationPosition) {
             const navResult = navigationService.calculatePath(userPosition, destinationPosition, true, SCALE_METERS_PER_UNIT);
@@ -244,7 +297,7 @@ export const MapView3D: React.FC = () => {
 
     const centerOnUser = useCallback(() => {
         if (userPosition) {
-            console.log('Center on user:', userPosition);
+            setCenterTrigger(prev => prev + 1);
         }
     }, [userPosition]);
 
@@ -252,7 +305,7 @@ export const MapView3D: React.FC = () => {
         <div className="map-container">
             <TopNav showLogo={true} />
             
-            <div className="map-controls" style={{ position: 'fixed', top: '70px', left: 0, right: 0, zIndex: 200, background: 'transparent', padding: '1rem' }}>
+            <div className="map-controls" style={{ position: 'fixed', top: '86px', left: 0, right: 0, zIndex: 200, background: 'transparent', padding: '1rem' }}>
                 {isGlobalAdmin && (
                     <UniversityDropdownSelect
                         value={selectedUniversityId}
@@ -390,84 +443,67 @@ export const MapView3D: React.FC = () => {
                 </div>
             </div>
 
-            {gpsError && !isGuest && !isTrackingGPS && (
-                <div 
-                    className="gps-error-banner"
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: navigationInfo ? '75px' : '75px', 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 150 
-                    }}
-                >
-                    <span>⚠️ {gpsError}</span>
-                    <button onClick={() => setGpsError(null)}>Dismiss</button>
-                </div>
-            )}
-
-            {gpsPermission === 'denied' && !isGuest && !isTrackingGPS && (
-                <div 
-                    className="gps-warning-banner"
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: navigationInfo ? '75px' : '75px', 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 150 
-                    }}
-                >
-                    <span>📍 Location access denied. Enable GPS in browser settings to track your position.</span>
-                </div>
-            )}
-
-            {isTrackingGPS && userGPS && !gpsError && !isGuest && (
-                <div 
-                    className="gps-info-bar" 
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: navigationInfo ? '125px' : '75px', 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 150 
-                    }}
-                >
-                    <span>📍 Your location: {userGPS.latitude.toFixed(6)}, {userGPS.longitude.toFixed(6)}</span>
-                    <span className="accuracy-info">Accuracy: ±{Math.round(userGPS.accuracy)}m</span>
-                </div>
-            )}
-
-            {navigationInfo && !isGuest && (
-                <div 
-                    className="navigation-info-bar" 
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: isTrackingGPS && userGPS && !gpsError ? '175px' : (gpsError || gpsPermission === 'denied') ? '125px' : '75px', 
-                        left: 0, 
-                        right: 0, 
-                        zIndex: 150 
-                    }}
-                >
-                    <div className="nav-direction">
-                        <span className="nav-distance">📏 {Math.round(navigationInfo.totalDistanceMeters)}m</span>
-                        <span className="nav-time">⏱️ ~{navigationInfo.estimatedTimeMinutes} min</span>
+            <div className="bottom-stack-container">
+                {navigationInfo && !isGuest && (
+                    <div className="navigation-info-bar">
+                        <div className="nav-direction">
+                            <span className="nav-distance">📏 {Math.round(navigationInfo.totalDistanceMeters)}m</span>
+                            <span className="nav-time">⏱️ ~{navigationInfo.estimatedTimeMinutes} min</span>
+                        </div>
+                        <div className="nav-instruction">
+                            {navigationInfo.waypoints[1]?.instruction}
+                        </div>
                     </div>
-                    <div className="nav-instruction">
-                        {navigationInfo.waypoints[1]?.instruction}
-                    </div>
-                </div>
-            )}
+                )}
 
-            {isTrackingGPS && isIndoor && nearestBuilding && !isGuest && (
-                <div className="indoor-indicator">
-                    <div className="indoor-status">
-                        <span className="indoor-icon">🏢</span>
-                        <span className="indoor-building">Inside {nearestBuilding.name}</span>
-                    </div>
-                </div>
-            )}
+                {!isGuest && (
+                    <>
+                        {gpsError && !isTrackingGPS && (
+                            <div className="gps-error-banner">
+                                <span>⚠️ {gpsError}</span>
+                                <button onClick={() => setGpsError(null)}>Dismiss</button>
+                            </div>
+                        )}
 
-            <div className="map-3d-view" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: 'calc(100vh - 75px)', zIndex: 1 }}>
+                        {gpsPermission === 'denied' && !isTrackingGPS && (
+                            <div className="gps-warning-banner">
+                                <span>📍 Location access denied. Enable GPS in browser settings to track your position.</span>
+                            </div>
+                        )}
+
+                        {(isTrackingGPS || userGPS) && (
+                            <div className={`gps-info-bar ${gpsError ? 'gps-error' : ''}`}>
+                                <div className="gps-info-main">
+                                    {userGPS ? (
+                                        <>
+                                            <span>📍 {userGPS.latitude.toFixed(6)}, {userGPS.longitude.toFixed(6)}</span>
+                                            <span className="accuracy-info">±{Math.round(userGPS.accuracy)}m</span>
+                                        </>
+                                    ) : (
+                                        <span>📍 Waiting for signal...</span>
+                                    )}
+                                </div>
+                                {gpsError && (
+                                    <div className="gps-status-error">
+                                        ⚠️ {gpsError}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {isTrackingGPS && isIndoor && nearestBuilding && (
+                            <div className="indoor-indicator">
+                                <div className="indoor-status">
+                                    <span className="indoor-icon">🏢</span>
+                                    <span className="indoor-building">Inside {nearestBuilding.name}</span>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            <div className="map-3d-view" style={{ position: 'fixed', top: '88.8px', left: 0, width: '100%', height: 'calc(100vh - 163.8px)', zIndex: 1 }}>
                 {showPlaceholder ? (
                     <div className="map-placeholder">
                         <div className="placeholder-content">
@@ -492,6 +528,7 @@ export const MapView3D: React.FC = () => {
                         disableControls={showSearchResults}
                         viewMode={viewMode}
                         onBuildingSelected={setSelectedBuildingFrom3D}
+                        centerTrigger={centerTrigger}
                     />
                 )}
             </div>
@@ -540,15 +577,23 @@ const EventsModal: React.FC<EventsModalProps> = ({ events, onClose }) => {
                         </div>
                     ) : (
                         <div className="events-list">
-                            {events.map((event) => (
+                            {[...events].sort((a, b) => {
+                                if (a.isPinned && !b.isPinned) return -1;
+                                if (!a.isPinned && b.isPinned) return 1;
+                                return new Date(a.date).getTime() - new Date(b.date).getTime();
+                            }).map((event) => (
                                 <div key={event.id} className="event-card">
-                                    <div 
-                                        className="event-category"
-                                        style={{ backgroundColor: getCategoryColor(event.category) }}
-                                    >
+                                    <div className="event-category" style={{ backgroundColor: getCategoryColor(event.category) }}>
                                         {getCategoryLabel(event.category)}
                                     </div>
-                                    <h3 className="event-title">{event.title}</h3>
+                                    <h3 className="event-title" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        {event.isPinned && (
+                                            <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="2" width="14" height="14">
+                                                <path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z" />
+                                            </svg>
+                                        )}
+                                        {event.title}
+                                    </h3>
                                     <p className="event-description">{event.description}</p>
                                     <div className="event-details">
                                         <div className="event-detail">

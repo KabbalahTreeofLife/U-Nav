@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginView } from './login-signup/LoginView';
-import { SignupView } from './login-signup/SignupView';
-import { GuestLoginView } from './login-signup/GuestLoginView';
+import { LoginView } from './Login-Signup/LoginView';
+import { SignupView } from './Login-Signup/SignupView';
+import { GuestLoginView } from './Login-Signup/GuestLoginView';
 import { MapView3D } from './map/3d/MapView3D';
 import { MapView2D } from './map/2d/MapView2D';
 import { DiningView } from './dining/DiningView';

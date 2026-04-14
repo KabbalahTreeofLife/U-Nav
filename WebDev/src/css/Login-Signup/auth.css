@@ -422,3 +422,28 @@
   color: var(--color-primary-hover);
   text-decoration: underline;
 }
+
+/* Password Toggle */
+.password-toggle {
+  transition: all var(--transition-fast);
+  color: var(--color-text-muted) !important;
+}
+
+.password-toggle:hover {
+  color: var(--color-primary) !important;
+  transform: translateY(-50%) scale(1.1) !important;
+}
+
+.password-toggle:focus {
+  outline: none;
+  color: var(--color-primary) !important;
+}
+
+.password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.password-toggle svg {
+  display: block;
+}

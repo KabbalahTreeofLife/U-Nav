@@ -30,4 +30,7 @@ export interface MapConfig {
     cameraPosition: [number, number, number];
     cameraTarget: [number, number, number];
     zoomLevel: number;
+    originLat?: number;
+    originLon?: number;
+    metersPerUnit?: number;
 }

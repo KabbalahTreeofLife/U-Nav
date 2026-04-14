@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
+import React, { useRef, Suspense, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,11 +6,17 @@ import { DEFAULT_MAP_CONFIG } from './universities';
 import { UserDot, DestinationMarker, PathLine, PathDots } from './userPosition';
 import { KeyboardControls } from './KeyboardControls';
 import { BuildingPopup } from './BuildingPopup';
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { ModelPosition } from './geolocation';
 import type { Building } from './types';
 
 const CAMERA_STORAGE_KEY = 'unav_camera_state';
+export const MAX_BOUNDARY = 120;
 
+
+/**
+ * Data structure for building metadata used for 3D mesh interaction.
+ */
 interface BuildingInfo {
     id: string;
     name: string;
@@ -66,10 +72,16 @@ const getStoredCameraState = (): CameraState | null => {
     }
 };
 
-const CameraStateManager: React.FC<{ controlsRef: React.RefObject<ReturnType<typeof OrbitControls> | null> }> = ({ controlsRef }) => {
+/**
+ * Component responsible for persisting and restoring the camera's position and target 
+ * in localStorage. This ensures a seamless experience when the user refreshes or 
+ * navigates away and back.
+ */
+const CameraStateManager: React.FC<{ controlsRef: React.RefObject<OrbitControlsImpl | null>; userPosition?: ModelPosition | null; centerTrigger?: number }> = ({ controlsRef, userPosition, centerTrigger }) => {
     const { camera } = useThree();
     const initialized = useRef(false);
     const frameCount = useRef(0);
+    const prevCenterTrigger = useRef(centerTrigger || 0);
 
     useEffect(() => {
         const stored = getStoredCameraState();
@@ -83,8 +95,21 @@ const CameraStateManager: React.FC<{ controlsRef: React.RefObject<ReturnType<typ
         initialized.current = true;
     }, [camera, controlsRef]);
 
+    useEffect(() => {
+        if (centerTrigger && centerTrigger > prevCenterTrigger.current && userPosition && controlsRef.current) {
+            prevCenterTrigger.current = centerTrigger;
+            controlsRef.current.target.set(userPosition.x, 0, userPosition.z);
+            controlsRef.current.update();
+        }
+    }, [centerTrigger, userPosition, controlsRef]);
+
     useFrame(() => {
         if (!initialized.current || !controlsRef.current) return;
+
+        const target = controlsRef.current.target;
+        
+        target.x = THREE.MathUtils.clamp(target.x, -MAX_BOUNDARY, MAX_BOUNDARY);
+        target.z = THREE.MathUtils.clamp(target.z, -MAX_BOUNDARY, MAX_BOUNDARY);
 
         frameCount.current++;
         if (frameCount.current % 30 !== 0) return;
@@ -112,24 +137,31 @@ interface CampusSceneProps {
     navigationWaypoints?: ModelPosition[] | null;
     disableControls?: boolean;
     viewMode?: 'perspective' | 'topdown';
-    orbitControlsRef?: React.RefObject<ReturnType<typeof OrbitControls> | null>;
+    orbitControlsRef?: React.RefObject<OrbitControlsImpl | null>;
     onBuildingSelected?: (building: Building | null) => void;
+    centerTrigger?: number;
 }
 
-const ViewModeHandler: React.FC<{ viewMode?: 'perspective' | 'topdown'; controlsRef: React.RefObject<ReturnType<typeof OrbitControls> | null> }> = ({ viewMode, controlsRef }) => {
+/**
+ * Handles the logic for switching between 'perspective' (free camera) and 
+ * 'topdown' (2D-like view) modes.
+ */
+const ViewModeHandler: React.FC<{ viewMode?: 'perspective' | 'topdown'; controlsRef: React.RefObject<OrbitControlsImpl | null> }> = ({ viewMode, controlsRef }) => {
     const { camera } = useThree();
     const prevPositionRef = useRef<[number, number, number] | null>(null);
 
     useEffect(() => {
         if (viewMode === 'topdown') {
+            // Save current position before switching to top-down
             prevPositionRef.current = camera.position.toArray() as [number, number, number];
-            camera.position.set(0, 20, 0);
+            camera.position.set(0, 20, 0); // High overhead view
             camera.lookAt(0, 0, 0);
             if (controlsRef.current) {
                 controlsRef.current.target.set(0, 0, 0);
                 controlsRef.current.update();
             }
         } else if (prevPositionRef.current) {
+            // Restore previous position when returning to perspective
             camera.position.set(...prevPositionRef.current);
             if (controlsRef.current) {
                 controlsRef.current.target.set(0, 0, 0);
@@ -141,73 +173,20 @@ const ViewModeHandler: React.FC<{ viewMode?: 'perspective' | 'topdown'; controls
     return null;
 };
 
-const GridFloor: React.FC = () => {
-    const gridSize = 50;
-    const sectionSize = 5;
-
-    const gridLines = useMemo(() => {
-        const xLines: THREE.Line[] = [];
-        const zLines: THREE.Line[] = [];
-
-        for (let i = -gridSize / 2; i <= gridSize / 2; i++) {
-            const isSection = i % sectionSize === 0;
-            const isOrigin = i === 0;
-
-            let zColor: THREE.Color;
-            let xColor: THREE.Color;
-            const opacity = isSection || isOrigin ? 1 : 0.5;
-
-            if (isOrigin) {
-                zColor = new THREE.Color('#000000');
-                xColor = new THREE.Color('#000000');
-            } else if (isSection) {
-                zColor = i > 0 ? new THREE.Color('#3b82f6') : new THREE.Color('#1e3a8a');
-                xColor = i > 0 ? new THREE.Color('#ef4444') : new THREE.Color('#7f1d1d');
-            } else {
-                zColor = i > 0 ? new THREE.Color('#60a5fa') : new THREE.Color('#1e40af');
-                xColor = i > 0 ? new THREE.Color('#f87171') : new THREE.Color('#b91c1c');
-            }
-
-            const zGeom = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(-gridSize / 2, 0, i),
-                new THREE.Vector3(gridSize / 2, 0, i),
-            ]);
-            const zMat = new THREE.LineBasicMaterial({ color: zColor, transparent: true, opacity });
-            const zLine = new THREE.Line(zGeom, zMat);
-            zLines.push(zLine);
-
-            const xGeom = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(i, 0, -gridSize / 2),
-                new THREE.Vector3(i, 0, gridSize / 2),
-            ]);
-            const xMat = new THREE.LineBasicMaterial({ color: xColor, transparent: true, opacity });
-            const xLine = new THREE.Line(xGeom, xMat);
-            xLines.push(xLine);
-        }
-
-        return { xLines, zLines };
-    }, [gridSize, sectionSize]);
-
-    return (
-        <group position={[0, 1.5, 0]} rotation={[0, 0, 0]}>
-            {gridLines.xLines.map((line: THREE.Line, idx: number) => (
-                <primitive key={`x-${idx}`} object={line} />
-            ))}
-            {gridLines.zLines.map((line: THREE.Line, idx: number) => (
-                <primitive key={`z-${idx}`} object={line} />
-            ))}
-        </group>
-    );
-};
-
+/**
+ * Loads and processes the campus GLB 3D model.
+ * Adds interaction logic to building meshes (hover and click effects).
+ */
 const CampusModel: React.FC<{ url: string; onSelectBuilding: (id: string) => void }> = ({ url, onSelectBuilding }) => {
     const { scene } = useGLTF(url);
 
     React.useEffect(() => {
+        // Traverse the 3D model to find and mark buildings as selectable
         scene.traverse((child) => {
             if (child instanceof THREE.Mesh) {
                 const meshName = child.userData?.name || child.name;
-                if (meshName && meshName.startsWith('Building_')) {
+                // Standard building mesh naming convention: Building_[Name]
+                if (meshName && meshName.startsWith('Building_') && meshName !== 'Building_Background') {
                     child.userData.isSelectable = true;
                     child.userData.buildingId = meshName;
                 }
@@ -219,7 +198,7 @@ const CampusModel: React.FC<{ url: string; onSelectBuilding: (id: string) => voi
     const handleClick = (e: any) => {
         e.stopPropagation();
         const meshName = e.object?.userData?.buildingId || e.object?.name;
-        if (meshName && meshName.startsWith('Building_')) {
+        if (meshName && meshName.startsWith('Building_') && meshName !== 'Building_Background') {
             onSelectBuilding(meshName);
         }
     };
@@ -228,7 +207,7 @@ const CampusModel: React.FC<{ url: string; onSelectBuilding: (id: string) => voi
     const handlePointerOver = (e: any) => {
         e.stopPropagation();
         const meshName = e.object?.userData?.buildingId || e.object?.name;
-        if (meshName && meshName.startsWith('Building_')) {
+        if (meshName && meshName.startsWith('Building_') && meshName !== 'Building_Background') {
             document.body.style.cursor = 'pointer';
         }
     };
@@ -247,7 +226,11 @@ const CampusModel: React.FC<{ url: string; onSelectBuilding: (id: string) => voi
     );
 };
 
-const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | null; onSelectBuilding: (building: Building | null) => void }> = ({ 
+/**
+ * Orchestrates the rendering of all 3D scene elements:
+ * Lights, Models, User Tracking, Destination Markers, and Navigation Paths.
+ */
+const SceneContent: React.FC<CampusSceneProps & { onSelectBuilding: (building: Building | null) => void }> = ({ 
     glbUrl,
     userPosition,
     accuracy = 10,
@@ -255,14 +238,14 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
     destinationPosition,
     destinationName,
     showUserDot = true,
-    selectedBuildingId,
     onSelectBuilding,
     navigationWaypoints,
     disableControls = false,
     viewMode,
     orbitControlsRef: externalOrbitControlsRef,
+    centerTrigger,
 }) => {
-    const localOrbitControlsRef = useRef<ReturnType<typeof OrbitControls> | null>(null);
+    const localOrbitControlsRef = useRef<OrbitControlsImpl | null>(null);
     const orbitControlsRef = externalOrbitControlsRef || localOrbitControlsRef;
     const pathPoints = navigationWaypoints && navigationWaypoints.length >= 2 
         ? navigationWaypoints
@@ -291,9 +274,6 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
             <ambientLight intensity={0.6} />
             <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
             <pointLight position={[-10, 10, -10]} intensity={0.5} />
-
-            <GridFloor />
-
             {glbUrl && <CampusModel url={glbUrl} onSelectBuilding={handleMeshSelect} />}
 
             {showUserDot && userPosition && (
@@ -322,27 +302,28 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
                 ref={orbitControlsRef}
                 enablePan={!disableControls}
                 enableZoom={!disableControls}
-                enableRotate={viewMode !== 'topdown'}
+                enableRotate={!disableControls}
                 minDistance={5}
                 maxDistance={200}
-                maxPolarAngle={Math.PI / 2.1}
+                minPolarAngle={viewMode === 'topdown' ? 0 : 0}
+                maxPolarAngle={viewMode === 'topdown' ? 0 : Math.PI / 2.1}
             />
 
-            <CameraStateManager controlsRef={orbitControlsRef} />
+            <CameraStateManager controlsRef={orbitControlsRef} userPosition={userPosition} centerTrigger={centerTrigger} />
 
             <KeyboardControls moveSpeed={0.1} enabled={!disableControls} orbitControlsRef={orbitControlsRef} />
         </>
     );
 };
 
+/**
+ * The main 3D Viewport component. 
+ * Combines the Three.js Canvas with the SceneContent and environment settings.
+ */
 export const CampusScene: React.FC<CampusSceneProps> = (props) => {
-    const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
-    const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
-    const orbitControlsRef = useRef<ReturnType<typeof OrbitControls> | null>(null);
+    const orbitControlsRef = useRef<OrbitControlsImpl | null>(null);
 
     const handleSelectBuilding = (building: Building | null) => {
-        setSelectedBuildingId(building?.id ?? null);
-        setSelectedBuilding(building);
         props.onBuildingSelected?.(building);
     };
 
@@ -362,7 +343,6 @@ export const CampusScene: React.FC<CampusSceneProps> = (props) => {
                 <Suspense fallback={null}>
                     <SceneContent 
                         {...props} 
-                        selectedBuildingId={selectedBuildingId}
                         onSelectBuilding={handleSelectBuilding}
                         orbitControlsRef={orbitControlsRef}
                     />

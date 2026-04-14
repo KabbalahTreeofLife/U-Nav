@@ -7,11 +7,10 @@ export const usersApi = {
 
     getUser: async (id: number) => apiClient.get<{ user: User }>(API_ENDPOINTS.USERS.GET(id)),
 
-    updateUserRole: async (id: number, data: UpdateRoleRequest, userId: number): Promise<{ success: boolean; error?: string }> => {
+    updateUserRole: async (id: number, data: UpdateRoleRequest, _adminId?: number): Promise<{ success: boolean; error?: string }> => {
         const result = await apiClient.put<{ user: User }>(
             API_ENDPOINTS.USERS.UPDATE_ROLE(id), 
-            data,
-            { headers: { 'x-user-id': userId.toString() } }
+            data
         );
         if (result.success) {
             return { success: true };
@@ -19,10 +18,9 @@ export const usersApi = {
         return { success: false, error: 'Failed to update user role' };
     },
 
-    deleteUser: async (id: number, userId: number): Promise<{ success: boolean; error?: string }> => {
+    deleteUser: async (id: number, _adminId?: number): Promise<{ success: boolean; error?: string }> => {
         const result = await apiClient.delete<{ message: string }>(
-            API_ENDPOINTS.USERS.DELETE(id),
-            { headers: { 'x-user-id': userId.toString() } }
+            API_ENDPOINTS.USERS.DELETE(id)
         );
         if (result.success) {
             return { success: true };

@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { query } from '../config/database';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET environment variable is not defined');
+}
 
 export interface AuthRequest extends Request {
     userId?: number;
@@ -7,73 +12,62 @@ export interface AuthRequest extends Request {
     userUniversityId?: number | null;
 }
 
-export const requireGlobalAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const userId = req.headers['x-user-id'] as string;
+interface JwtPayload {
+    id: number;
+    email: string;
+    role: string;
+    university_id: number | null;
+}
 
-    if (!userId) {
-        res.status(401).json({ error: 'Unauthorized: No user ID provided' });
+export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized: No token provided' });
         return;
     }
 
-    try {
-        const result = await query(
-            'SELECT role, university_id FROM users WHERE id = $1',
-            [parseInt(userId)]
-        );
-
-        if (result.rows.length === 0) {
-            res.status(401).json({ error: 'Unauthorized: User not found' });
+    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+        if (err) {
+            res.status(403).json({ error: 'Forbidden: Invalid or expired token' });
             return;
         }
 
-        const user = result.rows[0];
-        if (user.role !== 'admin' || user.university_id !== null) {
+        const payload = decoded as JwtPayload;
+        req.userId = payload.id;
+        req.userUniversityId = payload.university_id;
+        req.isGlobalAdmin = payload.role === 'admin' && payload.university_id === null;
+        next();
+    });
+};
+
+export const requireGlobalAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    authenticateToken(req, res, () => {
+        if (!req.isGlobalAdmin) {
             res.status(403).json({ error: 'Forbidden: Global admin access required' });
             return;
         }
-
-        req.userId = parseInt(userId);
-        req.isGlobalAdmin = true;
         next();
-    } catch (error) {
-        console.error('Auth middleware error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    });
 };
 
-export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const userId = req.headers['x-user-id'] as string;
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    authenticateToken(req, res, () => {
+        const isUniAdmin = req.userUniversityId !== null;
+        const isGlobalAdmin = req.isGlobalAdmin;
 
-    if (!userId) {
-        res.status(401).json({ error: 'Unauthorized: No user ID provided' });
-        return;
-    }
-
-    try {
-        const result = await query(
-            'SELECT role, university_id FROM users WHERE id = $1',
-            [parseInt(userId)]
-        );
-
-        if (result.rows.length === 0) {
-            res.status(401).json({ error: 'Unauthorized: User not found' });
-            return;
-        }
-
-        const user = result.rows[0];
-        if (user.role !== 'admin') {
+        if (!isGlobalAdmin && !isUniAdmin) {
             res.status(403).json({ error: 'Forbidden: Admin access required' });
             return;
         }
-
-        req.userId = parseInt(userId);
-        req.userUniversityId = user.university_id;
-        req.isGlobalAdmin = user.university_id === null;
         next();
-    } catch (error) {
-        console.error('Auth middleware error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    });
+};
+
+export const canManageUniversity = (req: AuthRequest, universityId: number): boolean => {
+    if (req.isGlobalAdmin) return true;
+    return req.userUniversityId === universityId;
 };
 
 export const canManageUser = (actorUniversityId: number | null, isGlobalAdmin: boolean, targetUniversityId: number | null, targetUserId: number, actorUserId: number): { allowed: boolean; error?: string } => {
@@ -90,4 +84,4 @@ export const canManageUser = (actorUniversityId: number | null, isGlobalAdmin: b
         return { allowed: true };
     }
     return { allowed: false, error: 'You can only manage users from your university' };
-};
+};
