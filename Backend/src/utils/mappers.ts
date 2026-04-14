@@ -4,7 +4,7 @@ interface DiningRow {
     name: string;
     type: string;
     building: string;
-    floor: number;
+    floor: number | null;
     operating_hours: string;
     price_range: string;
     cuisine: string[];

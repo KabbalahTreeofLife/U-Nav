@@ -37,7 +37,7 @@ const initialFormData: DiningFormData = {
   name: '',
   type: 'restaurant',
   building: '',
-  floor: '1',
+  floor: '',
   operatingHours: '',
   priceRange: '$',
   cuisine: '',
@@ -107,7 +107,7 @@ export const DiningAdmin: React.FC = () => {
       name: location.name,
       type: location.type,
       building: location.building,
-      floor: location.floor.toString(),
+      floor: location.floor?.toString() || '',
       operatingHours: location.operatingHours,
       priceRange: location.priceRange,
       cuisine: location.cuisine.join(', '),
@@ -131,6 +131,7 @@ export const DiningAdmin: React.FC = () => {
     e.preventDefault();
     setActionLoading(true);
     
+    const floorValue = formData.floor.trim() === '' ? undefined : parseInt(formData.floor, 10);
     const cuisineArray = formData.cuisine
       .split(',')
       .map((c) => c.trim())
@@ -142,7 +143,7 @@ export const DiningAdmin: React.FC = () => {
           name: formData.name,
           type: formData.type,
           building: formData.building,
-          floor: parseInt(formData.floor),
+          floor: floorValue,
           operatingHours: formData.operatingHours,
           priceRange: formData.priceRange,
           cuisine: cuisineArray,
@@ -174,7 +175,7 @@ export const DiningAdmin: React.FC = () => {
           name: formData.name,
           type: formData.type,
           building: formData.building,
-          floor: parseInt(formData.floor),
+          floor: floorValue,
           operatingHours: formData.operatingHours,
           priceRange: formData.priceRange,
           cuisine: cuisineArray,
@@ -292,7 +293,7 @@ export const DiningAdmin: React.FC = () => {
               <tr>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Building</th>
+                <th>Location</th>
                 <th>Hours</th>
                 <th>Price</th>
                 <th>Rating</th>
@@ -308,7 +309,7 @@ export const DiningAdmin: React.FC = () => {
                   <td>
                     <span className="admin-badge admin-badge-primary">{location.type}</span>
                   </td>
-                  <td>{location.building}</td>
+                    <td>{location.building}</td>
                   <td>{location.operatingHours}</td>
                   <td>{location.priceRange}</td>
                   <td>{location.rating.toFixed(1)}</td>
@@ -432,7 +433,7 @@ export const DiningAdmin: React.FC = () => {
 
                 <div className="admin-form-row">
                   <div className="admin-form-group">
-                    <label>Building *</label>
+                    <label>Location *</label>
                     <input
                       type="text"
                       value={formData.building}
@@ -442,13 +443,13 @@ export const DiningAdmin: React.FC = () => {
                     />
                   </div>
                   <div className="admin-form-group">
-                    <label>Floor *</label>
+                    <label>Floor (optional)</label>
                     <input
                       type="number"
                       min="1"
+                      placeholder="Leave blank if not needed"
                       value={formData.floor}
                       onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
-                      required
                     />
                   </div>
                 </div>

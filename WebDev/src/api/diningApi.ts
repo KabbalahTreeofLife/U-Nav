@@ -7,7 +7,7 @@ export interface DiningLocation {
     name: string;
     type: 'restaurant' | 'cafe' | 'mess' | 'snack';
     building: string;
-    floor: number;
+    floor: number | null;
     operatingHours: string;
     priceRange: '$' | '$$' | '$$$';
     cuisine: string[];
@@ -23,7 +23,7 @@ export interface CreateDiningRequest {
     name: string;
     type: DiningLocation['type'];
     building: string;
-    floor: number;
+    floor?: number | null;
     operatingHours: string;
     priceRange: DiningLocation['priceRange'];
     cuisine: string[];
@@ -36,7 +36,7 @@ export interface UpdateDiningRequest {
     name?: string;
     type?: DiningLocation['type'];
     building?: string;
-    floor?: number;
+    floor?: number | null;
     operatingHours?: string;
     priceRange?: DiningLocation['priceRange'];
     cuisine?: string[];

@@ -15,7 +15,7 @@ CREATE TABLE dining_locations (
     name VARCHAR(255) NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('restaurant', 'cafe', 'mess', 'snack')),
     building VARCHAR(255) NOT NULL,
-    floor INTEGER DEFAULT 1,
+    floor INTEGER,
     operating_hours VARCHAR(100),
     price_range VARCHAR(10) DEFAULT '$' CHECK (price_range IN ('$', '$$', '$$$')),
     cuisine TEXT[],

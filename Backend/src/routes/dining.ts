@@ -9,6 +9,15 @@ const router = Router();
 const DINING_SELECT_QUERY = 'SELECT * FROM dining_locations';
 const DINING_RETURN_QUERY = 'RETURNING *';
 
+const normalizeFloor = (floor: unknown): number | null => {
+    if (floor === undefined || floor === null || floor === '') {
+        return null;
+    }
+
+    const parsedFloor = typeof floor === 'number' ? floor : parseInt(String(floor), 10);
+    return Number.isNaN(parsedFloor) ? null : parsedFloor;
+};
+
 router.get('/', async (req: Request, res: Response) => {
     try {
         const { university_id } = req.query;
@@ -70,7 +79,7 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
                 name,
                 type,
                 building,
-                floor || 1,
+                normalizeFloor(floor),
                 operatingHours || '',
                 priceRange || '$',
                 cuisine || [],
@@ -100,7 +109,7 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
              name = COALESCE($1, name),
              type = COALESCE($2, type),
              building = COALESCE($3, building),
-             floor = COALESCE($4, floor),
+             floor = $4,
              operating_hours = COALESCE($5, operating_hours),
              price_range = COALESCE($6, price_range),
              cuisine = COALESCE($7, cuisine),
@@ -111,7 +120,7 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
              updated_at = CURRENT_TIMESTAMP
              WHERE id = $12
              ${DINING_RETURN_QUERY}`,
-            [name, type, building, floor, operatingHours, priceRange, cuisine, rating, imageUrl, coordinates?.x, coordinates?.y, parseInt(id)]
+            [name, type, building, normalizeFloor(floor), operatingHours, priceRange, cuisine, rating, imageUrl, coordinates?.x, coordinates?.y, parseInt(id)]
         );
         
         if (result.rows.length === 0) {
