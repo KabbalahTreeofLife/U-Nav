@@ -3,7 +3,38 @@
     flex-direction: column;
     height: 100vh;
     background-color: var(--color-bg);
-    padding-top: 70px;
+    position: relative;
+    overflow: hidden;
+}
+
+.map-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: transparent;
+    border-bottom: none;
+}
+
+.map-3d-view {
+    width: 100%;
+    height: calc(100vh - 75px);
+    position: relative;
+    background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f2 50%, #c5dce8 100%);
+}
+
+.map-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: transparent;
+    border-bottom: none;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    z-index: 200;
 }
 
 .map-content {
@@ -17,8 +48,13 @@
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
-    background-color: var(--color-white);
-    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    border-bottom: none;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    z-index: 100;
 }
 
 .map-controls .dropdown-container {
@@ -74,6 +110,7 @@
 .map-icon-buttons {
     display: flex;
     gap: 0.5rem;
+    margin-left: auto;
 }
 
 .map-university-selector select,
@@ -233,8 +270,10 @@
 
 .map-3d-view {
     width: 100%;
-    height: calc(100vh - 70px - 60px - 80px);
-    position: relative;
+    height: calc(100vh - 75px);
+    position: fixed;
+    top: 0;
+    left: 0;
     background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f2 50%, #c5dce8 100%);
 }
 
@@ -583,17 +622,18 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 300;
 }
 
 .events-modal {
     position: absolute;
-    top: 0;
+    top: 70px;
     right: 0;
     width: 400px;
     max-width: 100%;
-    height: calc(100% - 70px);
+    height: calc(100% - 70px - 75px);
     background-color: var(--color-white);
+    z-index: 300;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
@@ -731,6 +771,9 @@
 }
 
 .gps-error-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -739,6 +782,7 @@
     border-bottom: 1px solid #fecaca;
     color: #dc2626;
     font-size: 0.875rem;
+    z-index: 150;
 }
 
 .gps-error-banner button {
@@ -752,15 +796,22 @@
 }
 
 .gps-warning-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
     padding: 0.75rem 1rem;
     background-color: #fffbeb;
     border-bottom: 1px solid #fcd34d;
     color: #92400e;
     font-size: 0.875rem;
     text-align: center;
+    z-index: 150;
 }
 
 .gps-info-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -769,6 +820,7 @@
     border-bottom: 1px solid #a7f3d0;
     color: #065f46;
     font-size: 0.8rem;
+    z-index: 150;
 }
 
 .accuracy-info {
@@ -778,12 +830,16 @@
 
 /* Navigation Info Bar */
 .navigation-info-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
     background-color: #eff6ff;
     border-bottom: 1px solid #bfdbfe;
+    z-index: 150;
 }
 
 .nav-direction {

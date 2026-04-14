@@ -111,7 +111,35 @@ interface CampusSceneProps {
     selectedBuildingId?: string | null;
     navigationWaypoints?: ModelPosition[] | null;
     disableControls?: boolean;
+    viewMode?: 'perspective' | 'topdown';
+    orbitControlsRef?: React.RefObject<ReturnType<typeof OrbitControls> | null>;
+    onBuildingSelected?: (building: Building | null) => void;
 }
+
+const ViewModeHandler: React.FC<{ viewMode?: 'perspective' | 'topdown'; controlsRef: React.RefObject<ReturnType<typeof OrbitControls> | null> }> = ({ viewMode, controlsRef }) => {
+    const { camera } = useThree();
+    const prevPositionRef = useRef<[number, number, number] | null>(null);
+
+    useEffect(() => {
+        if (viewMode === 'topdown') {
+            prevPositionRef.current = camera.position.toArray() as [number, number, number];
+            camera.position.set(0, 20, 0);
+            camera.lookAt(0, 0, 0);
+            if (controlsRef.current) {
+                controlsRef.current.target.set(0, 0, 0);
+                controlsRef.current.update();
+            }
+        } else if (prevPositionRef.current) {
+            camera.position.set(...prevPositionRef.current);
+            if (controlsRef.current) {
+                controlsRef.current.target.set(0, 0, 0);
+                controlsRef.current.update();
+            }
+        }
+    }, [viewMode, camera, controlsRef]);
+
+    return null;
+};
 
 const GridFloor: React.FC = () => {
     const gridSize = 50;
@@ -231,8 +259,11 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
     onSelectBuilding,
     navigationWaypoints,
     disableControls = false,
+    viewMode,
+    orbitControlsRef: externalOrbitControlsRef,
 }) => {
-    const orbitControlsRef = useRef<ReturnType<typeof OrbitControls> | null>(null);
+    const localOrbitControlsRef = useRef<ReturnType<typeof OrbitControls> | null>(null);
+    const orbitControlsRef = externalOrbitControlsRef || localOrbitControlsRef;
     const pathPoints = navigationWaypoints && navigationWaypoints.length >= 2 
         ? navigationWaypoints
         : (userPosition && destinationPosition 
@@ -291,7 +322,7 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
                 ref={orbitControlsRef}
                 enablePan={!disableControls}
                 enableZoom={!disableControls}
-                enableRotate={!disableControls}
+                enableRotate={viewMode !== 'topdown'}
                 minDistance={5}
                 maxDistance={200}
                 maxPolarAngle={Math.PI / 2.1}
@@ -307,10 +338,12 @@ const SceneContent: React.FC<CampusSceneProps & { selectedBuildingId: string | n
 export const CampusScene: React.FC<CampusSceneProps> = (props) => {
     const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
     const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+    const orbitControlsRef = useRef<ReturnType<typeof OrbitControls> | null>(null);
 
     const handleSelectBuilding = (building: Building | null) => {
         setSelectedBuildingId(building?.id ?? null);
         setSelectedBuilding(building);
+        props.onBuildingSelected?.(building);
     };
 
     return (
@@ -323,20 +356,25 @@ export const CampusScene: React.FC<CampusSceneProps> = (props) => {
                     far: 1000,
                 }}
                 shadows
-                style={{ width: '100%', height: '100%' }}
+                style={{ width: '100%', height: '100%', zIndex: 1 }}
             >
+                <ViewModeHandler viewMode={props.viewMode} controlsRef={orbitControlsRef} />
                 <Suspense fallback={null}>
                     <SceneContent 
                         {...props} 
                         selectedBuildingId={selectedBuildingId}
                         onSelectBuilding={handleSelectBuilding}
+                        orbitControlsRef={orbitControlsRef}
                     />
                     <Environment preset="city" />
                 </Suspense>
             </Canvas>
-            <BuildingPopup building={selectedBuilding} onClose={() => handleSelectBuilding(null)} />
         </>
     );
+};
+
+export const BuildingPopupWrapper: React.FC<{ building: Building | null; onClose: () => void }> = ({ building, onClose }) => {
+    return building ? <BuildingPopup building={building} onClose={onClose} /> : null;
 };
 
 export default CampusScene;
