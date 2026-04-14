@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Html } from '@react-three/drei';
-import * as THREE from 'three';
 import type { Building } from './types';
 
 interface BuildingHitboxProps {
@@ -12,7 +11,7 @@ interface BuildingHitboxProps {
 export const BuildingHitbox: React.FC<BuildingHitboxProps> = ({ building, onSelect, isSelected }) => {
     const [hovered, setHovered] = useState(false);
 
-    const handleClick = (e: THREE.Event) => {
+    const handleClick = (e: any) => {
         e.stopPropagation();
         onSelect(building);
     };

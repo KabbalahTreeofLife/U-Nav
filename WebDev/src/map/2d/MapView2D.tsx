@@ -9,7 +9,7 @@ import '../../css/Map/Map.css';
 
 export const MapView2D: React.FC = () => {
     const navigate = useNavigate();
-    const { universityId, isGuest, isGlobalAdmin } = useAuth();
+    const { universityId, isGlobalAdmin } = useAuth();
     const { universities } = useUniversities();
     const [selectedUniversityId, setSelectedUniversityId] = useState<number>(universityId || 1);
     const [searchQuery, setSearchQuery] = useState('');

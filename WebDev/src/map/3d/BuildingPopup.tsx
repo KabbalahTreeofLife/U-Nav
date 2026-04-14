@@ -149,13 +149,13 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose,
             onClick={onClose} 
             style={{
                 ...style,
-                zIndex: 400
+                zIndex: 2000
             }}
         >
             <div 
                 className="events-modal" 
                 onClick={(e) => e.stopPropagation()}
-                style={{ zIndex: 400 }}
+                style={{ zIndex: 2000 }}
             >
                 <div className="events-modal-header">
                     <h2>{building.name}</h2>

@@ -61,6 +61,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (isAuthApiSuccess(result)) {
             const userData = result.data.user;
+            const token = (result.data as any).token;
+            
+            if (token) {
+                localStorage.setItem('u-nav-token', token);
+            }
+
             const loggedInUser: AuthUser = {
                 id: userData.id,
                 email: userData.email,
@@ -101,6 +107,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
 
         if (result.success) {
+            const token = (result as any).data?.token;
+            if (token) {
+                localStorage.setItem('u-nav-token', token);
+            }
             setIsLoading(false);
             return true;
         }
@@ -121,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         setUniversityId(universityId);
         setIsGuest(true);
+        localStorage.removeItem('u-nav-token');
     }, []);
 
     const logout = useCallback(() => {
@@ -128,6 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsGuest(false);
         setUniversityId(null);
         setError(null);
+        localStorage.removeItem('u-nav-token');
     }, []);
 
     const clearError = useCallback(() => {

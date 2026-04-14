@@ -25,6 +25,15 @@ export class CoordinateTransformer {
         this.config = { ...this.config, ...config };
     }
 
+    updateFromMapConfig(mapConfig: any): void {
+        const newConfig: CoordinateConfig = {
+            originLat: mapConfig.originLat || DEFAULT_CONFIG.originLat,
+            originLon: mapConfig.originLon || DEFAULT_CONFIG.originLon,
+            metersPerUnit: mapConfig.metersPerUnit || DEFAULT_CONFIG.metersPerUnit,
+        };
+        this.updateConfig(newConfig);
+    }
+
     gpsToModel(gps: { latitude: number; longitude: number }): ModelPosition {
         const dNorth = (gps.latitude - this.config.originLat) * DEGREES_TO_METERS;
         const dEast = (gps.longitude - this.config.originLon) * DEGREES_TO_METERS * Math.cos(this.config.originLat * Math.PI / 180);

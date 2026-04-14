@@ -55,6 +55,8 @@ flowchart TB
         AdminPage["Admin Panel"]
         Auth["Authentication"]
         API["API Connection"]
+        Pathfinding["Pathfinding Engine (Simple)"]
+        Geo["Geolocation Sync"]
     end
 
     subgraph Backend
@@ -117,6 +119,8 @@ flowchart TB
         N1[2D Map]
         N2[3D Map]
         N3[Floor Selection]
+        N4[Simple Pathfinding]
+        N5[Smart Camera Sync]
     end
 
     subgraph Information
@@ -176,14 +180,15 @@ sequenceDiagram
         Website->>Student: Show error message
     end
 
-    note right of Student: Viewing Map
+    note right of Student: Viewing Map & Navigating
     Student->>Website: Click Map tab
     Website->>Server: Request map data
     Server->>Server: Security Check (JWT Verify)
     Server->>Database: Get map information
     Database->>Server: Map data
     Server->>Website: Return map data
-    Website->>Student: Display campus map
+    Website->>Website: Calculate Path (Pathfinding Engine)
+    Website->>Student: Display 3D campus map with path
 
     note right of Student: Finding Food
     Student->>Website: Go to Dining
@@ -313,7 +318,9 @@ flowchart LR
 | Database    | Supabase (PostgreSQL) | Data storage      |
 | Security    | JWT + bcrypt          | Authentication    |
 | Routing     | React Router          | Page navigation   |
-| 3D Graphics | Three.js              | 3D map display    |
+| 3D Graphics | React Three Fiber    | 3D map rendering  |
+| Pathfinding | Simple Implementation | Route calculation |
+| Geolocation | Browser API / Custom | Position tracking |
 
 ---
 

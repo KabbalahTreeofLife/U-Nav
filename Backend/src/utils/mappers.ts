@@ -24,6 +24,7 @@ interface EventRow {
     time: string;
     organizer: string;
     category: string;
+    is_pinned: boolean;
 }
 
 interface UserRow {
@@ -64,6 +65,7 @@ export const mapEventRow = (row: EventRow) => ({
     organizer: row.organizer,
     category: row.category,
     universityId: row.university_id,
+    isPinned: row.is_pinned || false,
     isFromDb: true,
 });
 

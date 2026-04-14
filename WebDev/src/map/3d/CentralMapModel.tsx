@@ -6,7 +6,9 @@ Command: npx gltfjsx@6.5.3 .\public\models\CentralMap.glb -o .\src\map\3d\Centra
 import * as THREE from 'three'
 import React from 'react'
 import { useGLTF } from '@react-three/drei'
-import { GLTF } from 'three-stdlib'
+import type { GLTF } from 'three-stdlib'
+
+type GLTFAction = THREE.AnimationClip
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -52,8 +54,8 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[]
 }
 
-export function Model(props: JSX.IntrinsicElements['group']) {
-  const { nodes, materials } = useGLTF('/CentralMap.glb') as GLTFResult
+export function Model(props: React.JSX.IntrinsicElements['group']) {
+  const { nodes, materials } = useGLTF('/CentralMap.glb') as unknown as GLTFResult
   return (
     <group {...props} dispose={null}>
       <group name="Empty" scale={11.523}>

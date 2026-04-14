@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { MAX_BOUNDARY } from './CampusScene';
 
 interface KeyboardControlsProps {
     moveSpeed?: number;
     enabled?: boolean;
-    orbitControlsRef?: React.RefObject<ReturnType<typeof OrbitControls> | null>;
+    orbitControlsRef?: React.RefObject<OrbitControlsImpl | null>;
 }
 
 export const KeyboardControls: React.FC<KeyboardControlsProps> = ({
@@ -49,45 +51,52 @@ export const KeyboardControls: React.FC<KeyboardControlsProps> = ({
     }, [enabled, handleKeyDown, handleKeyUp]);
 
     useFrame(() => {
-        if (!enabled || keysPressed.current.size === 0 || isInputActive()) return;
+        if (!enabled || isInputActive() || keysPressed.current.size === 0) return;
 
         const keys = keysPressed.current;
         let moveX = 0;
         let moveZ = 0;
 
-        if (keys.has('KeyW') || keys.has('ArrowUp')) {
+        // Only Arrow keys allowed for movement, WASD stays disabled
+        if (keys.has('ArrowUp')) {
             moveZ -= 1;
         }
-        if (keys.has('KeyS') || keys.has('ArrowDown')) {
+        if (keys.has('ArrowDown')) {
             moveZ += 1;
         }
-        if (keys.has('KeyA') || keys.has('ArrowLeft')) {
+        if (keys.has('ArrowLeft')) {
             moveX -= 1;
         }
-        if (keys.has('KeyD') || keys.has('ArrowRight')) {
+        if (keys.has('ArrowRight')) {
             moveX += 1;
         }
-
-        if (moveX === 0 && moveZ === 0) return;
 
         const controls = controlsRef?.current as any;
         if (!controls || !controls.target) return;
 
-        const forward = new THREE.Vector3();
-        camera.getWorldDirection(forward);
-        forward.y = 0;
-        forward.normalize();
+        if (moveX !== 0 || moveZ !== 0) {
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            forward.y = 0;
+            forward.normalize();
 
-        const right = new THREE.Vector3();
-        right.crossVectors(forward, camera.up).normalize();
+            const right = new THREE.Vector3();
+            right.crossVectors(forward, camera.up).normalize();
 
-        const movement = new THREE.Vector3();
-        movement.addScaledVector(right, moveX * moveSpeed);
-        movement.addScaledVector(forward, -moveZ * moveSpeed);
+            const movement = new THREE.Vector3();
+            movement.addScaledVector(right, moveX * moveSpeed);
+            movement.addScaledVector(forward, -moveZ * moveSpeed);
 
-        controls.target.add(movement);
-        camera.position.add(movement);
-        controls.update();
+            controls.target.add(movement);
+            camera.position.add(movement);
+
+            // Clamp Target and Camera to world boundaries
+            controls.target.x = THREE.MathUtils.clamp(controls.target.x, -MAX_BOUNDARY, MAX_BOUNDARY);
+            controls.target.z = THREE.MathUtils.clamp(controls.target.z, -MAX_BOUNDARY, MAX_BOUNDARY);
+            camera.position.x = THREE.MathUtils.clamp(camera.position.x, -MAX_BOUNDARY, MAX_BOUNDARY);
+            camera.position.z = THREE.MathUtils.clamp(camera.position.z, -MAX_BOUNDARY, MAX_BOUNDARY);
+        }
+
         controls.update();
     });
 

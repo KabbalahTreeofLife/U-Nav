@@ -5,7 +5,8 @@ const handleJsonResponse = async <T>(response: globalThis.Response): Promise<Res
         try {
             const errorData = await response.json();
             return { success: false, error: errorData.error || 'Unknown error' };
-        } catch {
+        } catch (error) {
+            console.error('API Error parsing error response:', error);
             return { success: false, error: 'Unknown error' };
         }
     }
@@ -13,7 +14,8 @@ const handleJsonResponse = async <T>(response: globalThis.Response): Promise<Res
     try {
         const data = await response.json();
         return { success: true, data };
-    } catch {
+    } catch (error) {
+        console.error('API Error parsing success response:', error);
         return { success: false, error: 'Invalid response format' };
     }
 };
@@ -22,15 +24,25 @@ export interface RequestOptions {
     headers?: Record<string, string>;
 }
 
+const getHeaders = (optionsHeaders?: Record<string, string>) => {
+    const headers: Record<string, string> = { ...optionsHeaders };
+    const token = localStorage.getItem('u-nav-token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+};
+
 export const apiClient = {
     async get<T>(url: string, options?: RequestOptions): Promise<ResponseResult<T>> {
         try {
             const response = await fetch(url, {
-                headers: options?.headers,
+                headers: getHeaders(options?.headers),
             });
             return handleJsonResponse<T>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
+        } catch (error) {
+            console.error('API Network Error (GET):', error);
+            return { success: false, error: 'Network error' };
         }
     },
 
@@ -38,12 +50,13 @@ export const apiClient = {
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...options?.headers },
+                headers: getHeaders({ 'Content-Type': 'application/json', ...options?.headers }),
                 body: JSON.stringify(body),
             });
             return handleJsonResponse<T>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
+        } catch (error) {
+            console.error('API Network Error (POST):', error);
+            return { success: false, error: 'Network error' };
         }
     },
 
@@ -51,12 +64,13 @@ export const apiClient = {
         try {
             const response = await fetch(url, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', ...options?.headers },
+                headers: getHeaders({ 'Content-Type': 'application/json', ...options?.headers }),
                 body: JSON.stringify(body),
             });
             return handleJsonResponse<T>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
+        } catch (error) {
+            console.error('API Network Error (PUT):', error);
+            return { success: false, error: 'Network error' };
         }
     },
 
@@ -64,11 +78,12 @@ export const apiClient = {
         try {
             const response = await fetch(url, {
                 method: 'DELETE',
-                headers: options?.headers,
+                headers: getHeaders(options?.headers),
             });
             return handleJsonResponse<T>(response);
-        } catch {
-            return { success: false, error: 'Network error. Please check if the server is running.' };
+        } catch (error) {
+            console.error('API Network Error (DELETE):', error);
+            return { success: false, error: 'Network error' };
         }
     },
 };

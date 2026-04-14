@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../config/database';
 import { mapDiningRow } from '../utils/mappers';
-import { requireAdmin, type AuthRequest } from '../middleware/auth';
+import { requireAdmin, canManageUniversity, type AuthRequest } from '../middleware/auth';
 import { sendSuccess, sendError, sendNotFound, sendBadRequest, HTTP_STATUS, ERROR_MESSAGES } from '../utils/responseHelpers';
 
 const router = Router();
@@ -60,6 +60,10 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
             return sendBadRequest(res, ERROR_MESSAGES.REQUIRED_FIELDS);
         }
         
+        if (!canManageUniversity(req, universityId)) {
+            return res.status(403).json({ error: 'Forbidden: You can only add dining locations for your own university' });
+        }
+        
         const result = await query(
             `INSERT INTO dining_locations 
              (university_id, name, type, building, floor, operating_hours, price_range, cuisine, rating, image_url, coordinates_x, coordinates_y)
@@ -95,6 +99,15 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
         const id = String(req.params.id);
         const { name, type, building, floor, operatingHours, priceRange, cuisine, rating, imageUrl, coordinates } = req.body;
         
+        const existingResult = await query('SELECT university_id FROM dining_locations WHERE id = $1', [parseInt(id)]);
+        if (existingResult.rows.length === 0) {
+            return sendNotFound(res, 'Dining location not found');
+        }
+
+        if (!canManageUniversity(req, existingResult.rows[0].university_id)) {
+            return res.status(403).json({ error: 'Forbidden: You can only update dining locations for your own university' });
+        }
+
         const result = await query(
             `UPDATE dining_locations SET
              name = COALESCE($1, name),
@@ -130,6 +143,16 @@ router.put('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
 router.delete('/:id', requireAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const id = String(req.params.id);
+        
+        const existingResult = await query('SELECT university_id FROM dining_locations WHERE id = $1', [parseInt(id)]);
+        if (existingResult.rows.length === 0) {
+            return sendNotFound(res, 'Dining location not found');
+        }
+
+        if (!canManageUniversity(req, existingResult.rows[0].university_id)) {
+            return res.status(403).json({ error: 'Forbidden: You can only delete dining locations for your own university' });
+        }
+
         const result = await query(`DELETE FROM dining_locations WHERE id = $1 RETURNING id`, [parseInt(id)]);
         
         if (result.rows.length === 0) {
