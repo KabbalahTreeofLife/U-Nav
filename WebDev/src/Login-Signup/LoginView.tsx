@@ -67,7 +67,10 @@ export const LoginView: React.FC = () => {
         <div className="auth-container">
             <div className="auth-card">
                 <div className="auth-header">
-                    <h1 className="auth-title">U-Nav</h1>
+                    <div className="auth-title-section">
+                        <img src="/Unav_Logo.png" alt="U-Nav Logo" className="auth-logo" />
+                        <h1 className="auth-title">U-Nav</h1>
+                    </div>
                     <p className="auth-subtitle">Sign in to your account</p>
                 </div>
 
