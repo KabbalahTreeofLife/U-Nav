@@ -21,7 +21,7 @@ interface BuildingInfo {
 
 const BUILDING_DATA: BuildingInfo[] = [
     { id: 'Building_Admin', name: 'Admin Building', description: 'Main administrative offices', position: [0.851, 0, -0.634], size: [0.5, 0.3, 0.5] },
-    { id: 'Building_Church', name: 'Chapel', description: 'School chapel and religious services', position: [-0.483, 0, 0.689], size: [0.5, 0.3, 0.5] },
+    { id: 'Building_Church', name: 'University Church', description: 'School chapel and religious services', position: [-0.483, 0, 0.689], size: [0.5, 0.3, 0.5] },
     { id: 'Building_Elementary', name: 'Elementary School', description: 'Elementary school building', position: [1.066, 0, -0.277], size: [0.5, 0.3, 0.5] },
     { id: 'Building_Engineering', name: 'College of Engineering', description: 'Engineering and technology facilities', position: [-0.461, 0, -0.014], size: [0.7, 0.4, 0.7] },
     { id: 'Building_EXCEL', name: 'EXCEL Building', description: 'EXCEL learning center', position: [0.62, 0, -0.407], size: [0.5, 0.3, 0.5] },

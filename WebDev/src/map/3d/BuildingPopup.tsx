@@ -15,31 +15,58 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose,
 
     if (!building) return null;
 
+    const getAreaKey = (area: string) => `${building.id}:${area}`;
+
     const handleToggle = (area: string) => {
         if (isGuest) return;
-        setExpanded((prev) => ({ ...prev, [area]: !prev[area] }));
+        const areaKey = getAreaKey(area);
+        setExpanded((prev) => ({ ...prev, [areaKey]: !prev[areaKey] }));
     };
 
     const handleStatusSelect = (area: string, status: string) => {
         if (isGuest) return;
-        setAreaStatus((prev) => ({ ...prev, [area]: status }));
+        const areaKey = getAreaKey(area);
+        setAreaStatus((prev) => ({ ...prev, [areaKey]: status }));
     };
 
     const buildingAreaMap: { [key: string]: string[] } = {
+        'Admin Building': ['Waiting Area'],
+        'Registrar Office': ['Waiting Area'],
+        'Mary Thomas Building': ['MT Lobby', 'MT Canteen'],
+        'University Gym': ['Ug 107', 'Bleachers'],
+        'High School Gym': ['Bleachers'],
+        'Uy Building': ['1st Floor Dining Hall', '2nd Floor Area'],
         'Henry Luce Library': ['Cyberlibrary', '2nd Floor Library', '3rd Floor Library', 'Activity Room'],
-        Chapel: ['Nave'],
+        'University Church': ['Nave'],
         'Rose Memorial Auditorium': ['Auditorium'],
         Gymnasium: ['Bleachers', 'UG 107'],
     };
 
-    const renderAreaCard = (area: string) => (
+    const mappedAreas = buildingAreaMap[building.name] ?? [];
+    const hasCustomAreas = mappedAreas.length > 0;
+
+    const shouldUseDefaultMainHub = ![
+        'College of Engineering',
+        'Henry Luce Library',
+        'Rose Memorial Auditorium',
+        'University Church',
+    ].includes(building.name) && !hasCustomAreas;
+
+    const areasForBuilding = hasCustomAreas
+        ? mappedAreas
+        : (shouldUseDefaultMainHub ? ['Main Hub'] : []);
+
+    const renderAreaCard = (area: string) => {
+        const areaKey = getAreaKey(area);
+
+        return (
         <div
-            key={area}
+            key={areaKey}
             style={{
                 background: '#f3f4f6',
                 borderRadius: '8px',
                 padding: '12px',
-                minHeight: expanded[area] ? '120px' : '60px',
+                minHeight: expanded[areaKey] ? '120px' : '60px',
                 textAlign: 'left',
                 fontWeight: 500,
                 color: '#1f2937',
@@ -72,16 +99,16 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose,
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}
-                        aria-label={expanded[area] ? `Close ${area} dropdown` : `Open ${area} dropdown`}
+                        aria-label={expanded[areaKey] ? `Close ${area} dropdown` : `Open ${area} dropdown`}
                     >
-                        {expanded[area] ? '⌃' : '⌄'}
+                        {expanded[areaKey] ? '⌃' : '⌄'}
                     </button>
                 )}
             </div>
             <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
-                Status: {areaStatus[area] || ''}
+                Status: {areaStatus[areaKey] || ''}
             </div>
-            {expanded[area] && (
+            {expanded[areaKey] && (
                 <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
@@ -113,7 +140,8 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose,
                 </div>
             )}
         </div>
-    );
+        );
+    };
 
     return (
         <div 
@@ -162,177 +190,13 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose,
                 </p>
                 <div style={{ fontWeight: 'bold', fontSize: '15px', textAlign: 'left' }}>Areas</div>
                 {building.name === 'College of Engineering' && (
-                    <>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
-                            {/* Lobby Box */}
-                            <div
-                                style={{
-                                    background: '#f3f4f6',
-                                    borderRadius: '8px',
-                                    padding: '12px',
-                                    minHeight: expanded['Lobby'] ? '120px' : '60px',
-                                    textAlign: 'left',
-                                    fontWeight: 500,
-                                    color: '#1f2937',
-                                    border: '1px solid #e5e7eb',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    cursor: 'default',
-                                    transition: 'min-height 0.2s',
-                                }}
-                            >
-                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Lobby</div>
-                                    {!isGuest && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleToggle('Lobby')}
-                                            style={{
-                                                border: 'none',
-                                                background: 'transparent',
-                                                cursor: 'pointer',
-                                                fontSize: '18px',
-                                                lineHeight: '18px',
-                                                fontWeight: 700,
-                                                color: '#1f2937',
-                                                width: '24px',
-                                                height: '24px',
-                                                padding: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                            aria-label={expanded['Lobby'] ? 'Close Lobby dropdown' : 'Open Lobby dropdown'}
-                                        >
-                                            {expanded['Lobby'] ? '⌃' : '⌄'}
-                                        </button>
-                                    )}
-                                </div>
-                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
-                                    Status: {areaStatus['Lobby'] || ''}
-                                </div>
-                                {expanded['Lobby'] && (
-                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
-                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
-                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Lobby', 'Empty')}
-                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Empty
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Lobby', 'Partially Full')}
-                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Partially Full
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Lobby', 'Full')}
-                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Full
-                                            </button>
-                                        </div>
-                                        {/* Expanded content placeholder */}
-                                    </div>
-                                )}
-                            </div>
-                            {/* Study Area Box */}
-                            <div
-                                style={{
-                                    background: '#f3f4f6',
-                                    borderRadius: '8px',
-                                    padding: '12px',
-                                    minHeight: expanded['Study Area'] ? '120px' : '60px',
-                                    textAlign: 'left',
-                                    fontWeight: 500,
-                                    color: '#1f2937',
-                                    border: '1px solid #e5e7eb',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    cursor: 'default',
-                                    transition: 'min-height 0.2s',
-                                }}
-                            >
-                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>Study Area</div>
-                                    {!isGuest && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleToggle('Study Area')}
-                                            style={{
-                                                border: 'none',
-                                                background: 'transparent',
-                                                cursor: 'pointer',
-                                                fontSize: '18px',
-                                                lineHeight: '18px',
-                                                fontWeight: 700,
-                                                color: '#1f2937',
-                                                width: '24px',
-                                                height: '24px',
-                                                padding: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                            aria-label={expanded['Study Area'] ? 'Close Study Area dropdown' : 'Open Study Area dropdown'}
-                                        >
-                                            {expanded['Study Area'] ? '⌃' : '⌄'}
-                                        </button>
-                                    )}
-                                </div>
-                                <div style={{ fontWeight: 400, fontSize: '14px', marginLeft: 0 }}>
-                                    Status: {areaStatus['Study Area'] || ''}
-                                </div>
-                                {expanded['Study Area'] && (
-                                    <div style={{ marginTop: '10px', fontSize: '13px', color: '#374151' }}>
-                                        <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>Report</div>
-                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Study Area', 'Empty')}
-                                                style={{ flex: 1, background: '#bbf7d0', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#166534', border: '1px solid #22c55e', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Empty
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Study Area', 'Partially Full')}
-                                                style={{ flex: 1, background: '#fef9c3', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#a16207', border: '1px solid #fde047', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Partially Full
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled={isGuest}
-                                                onClick={() => handleStatusSelect('Study Area', 'Full')}
-                                                style={{ flex: 1, background: '#fecaca', borderRadius: '6px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, color: '#991b1b', border: '1px solid #f87171', textAlign: 'center', cursor: isGuest ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                Full
-                                            </button>
-                                        </div>
-                                        {/* Expanded content placeholder */}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        {/* Status label moved inside each area box */}
-                    </>
-                )}
-                {buildingAreaMap[building.name] && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
-                        {buildingAreaMap[building.name].map((area) => renderAreaCard(area))}
+                        {['Lobby', 'Study Area'].map((area) => renderAreaCard(area))}
+                    </div>
+                )}
+                {building.name !== 'College of Engineering' && areasForBuilding.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
+                        {areasForBuilding.map((area) => renderAreaCard(area))}
                     </div>
                 )}
             </div>

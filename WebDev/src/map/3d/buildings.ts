@@ -18,7 +18,7 @@ export const DEFAULT_BUILDINGS: Building[] = [
     },
     {
         id: 'Building_Church',
-        name: 'Chapel',
+        name: 'University Church',
         description: 'School chapel and religious services',
         position: [4.5, 0, 7.9],
         size: [0.5, 0.3, 0.5],
