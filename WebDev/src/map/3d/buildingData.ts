@@ -20,7 +20,7 @@ const BUILDING_LOCATIONS: BuildingLocation[] = [
     },
     {
         id: 'Building_Church',
-        name: 'Chapel',
+        name: 'University Church',
         modelPosition: { x: -5.6, y: 0, z: 7.9 },
         floors: 1,
         description: 'School chapel and religious services',

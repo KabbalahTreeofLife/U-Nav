@@ -25,11 +25,31 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
     };
 
     const buildingAreaMap: { [key: string]: string[] } = {
+        'Admin Building': ['Waiting Area'],
+        'Registrar Office': ['Waiting Area'],
+        'Mary Thomas Building': ['MT Lobby', 'MT Canteen'],
+        'University Gym': ['Ug 107', 'Bleachers'],
+        'High School Gym': ['Bleachers'],
+        'Uy Building': ['1st Floor Dining Hall', '2nd Floor Area'],
         'Henry Luce Library': ['Cyberlibrary', '2nd Floor Library', '3rd Floor Library', 'Activity Room'],
-        Chapel: ['Nave'],
+        'University Church': ['Nave'],
         'Rose Memorial Auditorium': ['Auditorium'],
         Gymnasium: ['Bleachers', 'UG 107'],
     };
+
+    const mappedAreas = buildingAreaMap[building.name] ?? [];
+    const hasCustomAreas = mappedAreas.length > 0;
+
+    const shouldUseDefaultMainHub = ![
+        'College of Engineering',
+        'Henry Luce Library',
+        'Rose Memorial Auditorium',
+        'University Church',
+    ].includes(building.name) && !hasCustomAreas;
+
+    const areasForBuilding = hasCustomAreas
+        ? mappedAreas
+        : (shouldUseDefaultMainHub ? ['Main Hub'] : []);
 
     const renderAreaCard = (area: string) => (
         <div
@@ -318,9 +338,9 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
                         {/* Status label moved inside each area box */}
                     </>
                 )}
-                {buildingAreaMap[building.name] && (
+                {building.name !== 'College of Engineering' && areasForBuilding.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
-                        {buildingAreaMap[building.name].map((area) => renderAreaCard(area))}
+                        {areasForBuilding.map((area) => renderAreaCard(area))}
                     </div>
                 )}
             </div>
