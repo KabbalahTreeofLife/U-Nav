@@ -23,6 +23,7 @@ export class NavigationService {
     ): NavigationResult {
         if (useAStar) {
             const aStarResult = findPath(start, end);
+            console.log('A* result:', aStarResult);
             
             if (aStarResult) {
                 const waypoints: NavigationWaypoint[] = aStarResult.waypoints.map((pos, idx) => ({
@@ -40,6 +41,8 @@ export class NavigationService {
                     totalDistanceMeters: aStarResult.totalDistance,
                     estimatedTimeMinutes: Math.ceil(aStarResult.totalDistance / (WALKING_SPEED_MPS * 60)),
                 };
+            } else {
+                console.log('A* failed, falling back to straight line');
             }
         }
 

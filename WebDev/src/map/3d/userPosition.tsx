@@ -45,7 +45,7 @@ export const UserDot: React.FC<UserDotProps> = ({
                 <meshBasicMaterial color="#10b981" />
             </mesh>
 
-            <Html position={[0.5, 1, 0]}>
+            <Html position={[0.5, 1, 0]} zIndexRange={[100, 0]}>
                 <div style={{
                     background: 'rgba(16, 185, 129, 0.9)',
                     color: 'white',
@@ -89,7 +89,7 @@ export const DestinationMarker: React.FC<DestinationMarkerProps> = ({
                 <meshStandardMaterial color="#ef4444" />
             </mesh>
 
-            <Html position={[0, 1.2, 0]} center>
+            <Html position={[0, 1.2, 0]} center occlude zIndexRange={[100, 0]}>
                 <div style={{
                     background: 'rgba(239, 68, 68, 0.9)',
                     color: 'white',

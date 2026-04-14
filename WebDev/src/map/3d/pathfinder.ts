@@ -1,5 +1,4 @@
 import type { ModelPosition } from './geolocation';
-import { buildingDataService } from './buildingData';
 
 export interface PathNode {
     x: number;
@@ -18,21 +17,69 @@ export interface NavigationPath {
 }
 
 const SCALE = 16.25;
-const CLEARANCE_UNITS = 0.15;
+const CLEARANCE_UNITS = 0.1;
 
-function getBuildingBounds() {
-    return buildingDataService.getAllBuildings().map(b => ({
-        id: b.id,
-        name: b.name,
-        centerX: b.modelPosition.x,
-        centerZ: b.modelPosition.z,
-        halfWidth: 0.3,
-        halfDepth: 0.3,
-    }));
+const GLB_SCALE = 11.523;
+
+const GRID_SIZE = 30;
+const GRID_RESOLUTION = 300;
+
+interface BuildingBounds {
+    id: string;
+    name: string;
+    centerX: number;
+    centerZ: number;
+    halfWidth: number;
+    halfDepth: number;
 }
 
-const GRID_SIZE = 6;
-const GRID_RESOLUTION = 150;
+const GLB_BUILDINGS: { id: string; name: string; position: [number, number, number]; size: [number, number, number] }[] = [
+    { id: 'Building_Admin', name: 'Admin Building', position: [0.851, 0, -0.634], size: [0.4, 0.3, 0.4] },
+    { id: 'Building_Background', name: 'Background', position: [0.398, 0, 0.824], size: [2, 0.5, 1.5] },
+    { id: 'Building_Church', name: 'Chapel', position: [-0.483, 0, 0.689], size: [0.5, 0.4, 0.4] },
+    { id: 'Building_Elementary', name: 'Elementary School', position: [1.066, 0, -0.277], size: [0.6, 0.4, 0.5] },
+    { id: 'Building_Engineering', name: 'College of Engineering', position: [-0.461, 0, -0.014], size: [0.7, 0.5, 0.6] },
+    { id: 'Building_EXCEL', name: 'EXCEL Building', position: [0.62, 0, -0.407], size: [0.4, 0.3, 0.4] },
+    { id: 'Building_FranklinHall', name: 'Franklin Hall', position: [-0.171, 0, -0.315], size: [0.5, 0.35, 0.4] },
+    { id: 'Building_HSgym', name: 'High School Gym', position: [-0.873, 0, -0.682], size: [0.7, 0.5, 0.6] },
+    { id: 'Building_JohnsonHall', name: 'Johnson Hall', position: [0.911, 0, 0.261], size: [0.4, 0.35, 0.5] },
+    { id: 'Building_JuniorHigh', name: 'Junior High School', position: [-0.615, 0, -0.558], size: [0.7, 0.45, 0.6] },
+    { id: 'Building_Kindergarten', name: 'Kindergarten', position: [-0.422, 0, 0.855], size: [0.5, 0.35, 0.4] },
+    { id: 'Building_LDT', name: 'LDT Building', position: [0.469, 0, 0.285], size: [0.4, 0.3, 0.4] },
+    { id: 'Building_LEB', name: 'LEB Building', position: [-0.437, 0, -0.902], size: [0.5, 0.35, 0.4] },
+    { id: 'Building_Library', name: 'Henry Luce Library', position: [0.307, 0, 0.586], size: [0.5, 0.45, 0.5] },
+    { id: 'Building_LopezMemorial', name: 'Lopez Memorial', position: [-0.272, 0, -0.866], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_MaryThomas', name: 'Mary Thomas Building', position: [-0.1, 0, -1.212], size: [0.5, 0.35, 0.4] },
+    { id: 'Building_NewValentine', name: 'New Valentine', position: [0.176, 0, -0.789], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_OldValentine', name: 'Old Valentine', position: [0.083, 0, -1.046], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_Packaging', name: 'Packaging Center', position: [-0.471, 0, -0.347], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_Promenade', name: 'Promenade', position: [0.471, 0, -0.541], size: [0.35, 0.2, 0.35] },
+    { id: 'Building_Registrar', name: 'Registrar Office', position: [0.631, 0, 0.321], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_Roblee', name: 'Roblee Hall', position: [0.001, 0, -0.581], size: [0.5, 0.35, 0.4] },
+    { id: 'Building_RoseMemorial', name: 'Rose Memorial Auditorium', position: [0.039, 0, 0.888], size: [0.5, 0.45, 0.5] },
+    { id: 'Building_SeniorHigh', name: 'Senior High School', position: [-0.643, 0, -0.98], size: [0.7, 0.5, 0.6] },
+    { id: 'Building_UniversityGym', name: 'University Gym', position: [-0.177, 0, 1.257], size: [0.7, 0.5, 0.6] },
+    { id: 'Building_Uy', name: 'Uy Building', position: [-0.294, 0, -0.544], size: [0.35, 0.3, 0.35] },
+    { id: 'Building_WestonHall', name: 'Weston Hall', position: [0.643, 0, -0.029], size: [0.4, 0.35, 0.5] },
+];
+
+function getBuildingBounds(): BuildingBounds[] {
+    return GLB_BUILDINGS.map(b => {
+        const worldX = b.position[0] * GLB_SCALE;
+        const worldZ = b.position[2] * GLB_SCALE;
+        const halfWidth = (b.size[0] * GLB_SCALE) / 2;
+        const halfDepth = (b.size[2] * GLB_SCALE) / 2;
+        
+        return {
+            id: b.id,
+            name: b.name,
+            centerX: worldX,
+            centerZ: worldZ,
+            halfWidth,
+            halfDepth,
+        };
+    });
+}
 
 function gridToWorld(gridX: number, gridZ: number): ModelPosition {
     const range = GRID_SIZE;
@@ -131,7 +178,15 @@ export function findPath(start: ModelPosition, end: ModelPosition): NavigationPa
     const startGrid = worldToGrid(start.x, start.z);
     const endGrid = worldToGrid(end.x, end.z);
 
-    if (!isWalkable(start.x, start.z) || !isWalkable(end.x, end.z)) {
+    console.log('findPath called:', { start, end, startGrid, endGrid });
+
+    const startInBounds = start.x >= -GRID_SIZE / 2 && start.x <= GRID_SIZE / 2 &&
+                          start.z >= -GRID_SIZE / 2 && start.z <= GRID_SIZE / 2;
+    const endInBounds = end.x >= -GRID_SIZE / 2 && end.x <= GRID_SIZE / 2 &&
+                        end.z >= -GRID_SIZE / 2 && end.z <= GRID_SIZE / 2;
+
+    if (!startInBounds || !endInBounds) {
+        console.log('Start or end out of bounds');
         return null;
     }
 
@@ -185,8 +240,14 @@ export function findPath(start: ModelPosition, end: ModelPosition): NavigationPa
                 totalDist += Math.sqrt(dx * dx + dz * dz) * SCALE;
             }
 
+            if (!isWalkable(end.x, end.z)) {
+                const lastWalkable = path[path.length - 2] || path[path.length - 1];
+                path.push({ ...lastWalkable, x: end.x, z: end.z });
+            }
+
             const simplified = simplifyPath(path);
 
+            console.log('Path found:', simplified.length, 'waypoints', simplified);
             return {
                 waypoints: simplified,
                 totalDistance: totalDist,
@@ -197,6 +258,11 @@ export function findPath(start: ModelPosition, end: ModelPosition): NavigationPa
         closedSet.add(`${current.x},${current.z}`);
 
         const neighbors = getNeighbors(current);
+        
+        if (neighbors.length === 0) {
+            continue;
+        }
+        
         for (const neighbor of neighbors) {
             const key = `${neighbor.x},${neighbor.z}`;
             if (closedSet.has(key)) continue;
@@ -218,6 +284,7 @@ export function findPath(start: ModelPosition, end: ModelPosition): NavigationPa
         }
     }
 
+    console.log('No path found - openSet exhausted');
     return null;
 }
 

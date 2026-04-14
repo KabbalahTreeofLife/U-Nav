@@ -5,9 +5,10 @@ import type { Building } from './types';
 interface BuildingPopupProps {
     building: Building | null;
     onClose: () => void;
+    style?: React.CSSProperties;
 }
 
-export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose }) => {
+export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose, style }) => {
     const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
     const [areaStatus, setAreaStatus] = useState<{ [key: string]: string }>({});
     const { isGuest } = useAuth();
@@ -115,8 +116,19 @@ export const BuildingPopup: React.FC<BuildingPopupProps> = ({ building, onClose 
     );
 
     return (
-        <div className="events-modal-overlay" onClick={onClose}>
-            <div className="events-modal" onClick={(e) => e.stopPropagation()}>
+        <div 
+            className="events-modal-overlay"
+            onClick={onClose} 
+            style={{
+                ...style,
+                zIndex: 400
+            }}
+        >
+            <div 
+                className="events-modal" 
+                onClick={(e) => e.stopPropagation()}
+                style={{ zIndex: 400 }}
+            >
                 <div className="events-modal-header">
                     <h2>{building.name}</h2>
                     <button className="events-modal-close" onClick={onClose}>

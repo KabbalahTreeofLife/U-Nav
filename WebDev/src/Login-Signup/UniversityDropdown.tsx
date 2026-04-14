@@ -53,8 +53,8 @@ export const UniversityDropdown: React.FC<UniversityDropdownProps> = ({
     setHighlightedIndex(-1);
   };
 
-  const handleHiddenSelectBlur = () => {
-    onBlur?.({} as React.FocusEvent<HTMLSelectElement>);
+  const handleHiddenSelectBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
+    onBlur?.(e);
   };
 
   const handleToggle = () => {
