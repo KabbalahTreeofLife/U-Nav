@@ -2,38 +2,42 @@
 
 ## Overview
 
-U-Nav is a university navigation app that helps students find their way around campus, discover dining locations, and stay updated on campus events.
+U-Nav is a university campus navigation app built by 1st-year Software Engineering students. It helps students find their way around campus, discover dining locations, and stay updated on campus events.
 
 ---
 
-## How U-Nav Works (Simple View)
+## High-Level Architecture
 
 ```mermaid
 flowchart LR
-    subgraph User
+    subgraph Client["User's Device"]
         Phone["Phone or Computer"]
+        Browser["Web Browser"]
     end
 
     subgraph U_Nav
-        Web["Website"]
-        Server["Server"]
-        DB["Data Storage"]
+        Web["React Frontend<br/>(WebDev/)"]
+        Server["Express API<br/>(Backend/)"]
+        DB["PostgreSQL<br/>(Supabase)"]
     end
 
-    Phone --> Web
+    Phone --> Browser
+    Browser --> Web
     Web --> Server
     Server --> DB
     DB --> Server
-    Server --> Phone
+    Server --> Web
+    Web --> Browser
 ```
 
-**Simple Explanation:**
+**Data Flow:**
 
-1. Student opens U-Nav on their phone or computer
-2. U-Nav website sends a request to the server
-3. Server checks the database for information
-4. Database sends back the requested information
-5. U-Nav shows it to the student
+1. User opens U-Nav in browser
+2. React frontend renders UI
+3. API client sends request to Express backend
+4. Backend verifies JWT, queries database
+5. PostgreSQL returns data
+6. Frontend displays result
 
 ---
 
@@ -46,7 +50,7 @@ flowchart TB
         Admin["Administrators"]
     end
 
-    subgraph Frontend
+    subgraph Frontend["React Frontend (WebDev)"]
         LoginPage["Login Screen"]
         SignupPage["Sign Up Screen"]
         MapPage["Map View"]
@@ -55,11 +59,11 @@ flowchart TB
         AdminPage["Admin Panel"]
         Auth["Authentication"]
         API["API Connection"]
-        Pathfinding["Pathfinding Engine (Simple)"]
+        Pathfinding["Pathfinding (Simple)"]
         Geo["Geolocation Sync"]
     end
 
-    subgraph Backend
+    subgraph Backend["Express Backend (Backend)"]
         direction TB
         Express["Express Server"]
         subgraph Routing
@@ -72,7 +76,7 @@ flowchart TB
         Middleware["Security Check / JWT"]
     end
 
-    subgraph Database
+    subgraph Database["PostgreSQL Database"]
         UsersDB["Users Table"]
         UnivDB["Universities Table"]
         DiningDB["Dining Locations Table"]
@@ -310,71 +314,100 @@ flowchart LR
 
 ## Technology Stack
 
-| Component   | Technology            | Purpose           |
-| ----------- | --------------------- | ----------------- |
-| Frontend    | React + TypeScript    | Website interface |
-| Build Tool  | Vite                  | Fast development  |
-| Backend     | Node.js + Express     | Server logic      |
-| Database    | Supabase (PostgreSQL) | Data storage      |
-| Security    | JWT + bcrypt          | Authentication    |
-| Routing     | React Router          | Page navigation   |
-| 3D Graphics | React Three Fiber    | 3D map rendering  |
-| Pathfinding | Simple Implementation | Route calculation |
-| Geolocation | Browser API / Custom | Position tracking |
+| Layer | Technology | Key Files |
+|-------|-----------|----------|
+| Frontend | React 19 + TypeScript | `WebDev/src/main.tsx`, `App.tsx` |
+| Build Tool | Vite 7.3 | `WebDev/vite.config.ts` |
+| Backend | Express 5 + Node.js | `Backend/src/index.ts` |
+| Database | PostgreSQL (Supabase) | `Backend/src/config/database.ts` |
+| Security | JWT + bcryptjs | `Backend/src/routes/auth.ts`, `middleware/auth.ts` |
+| Routing | React Router DOM 7 | `WebDev/src/App.tsx` |
+| 3D Graphics | React Three Fiber | `src/map/3d/MapView3D.tsx`, `CampusScene.tsx` |
+| Pathfinding | Custom simple | `src/map/3d/pathfinder.ts` |
+| Geolocation | Browser API | `src/map/3d/geolocation.ts` |
 
 ---
 
-## User Types & Access
+## User Roles and Access
 
 ```mermaid
-flowchart LR
-    Users[User Types]
-    Regular[Regular Users]
-    Admins[Admin Users]
+flowchart TB
+    subgraph Roles["User Roles"]
+        Guest["Guest User"]
+        Student["Student User"]
+        UnivAdmin["University Admin"]
+        GlobalAdmin["Global Admin"]
+    end
 
-    Student[Students]
-    Guest[Guest Users]
-    UnivAdmin[University Admin]
-    GlobalAdmin[Global Admin]
+    subgraph Access["Access Permissions"]
+        Map["View Map"]
+        Dining["View Dining"]
+        Events["View Events"]
+        AdminPanel["Admin Panel"]
+    end
 
-    Features[Access To]
-    Map[Map View]
-    Dining[Dining]
-    Events[Events]
-
-    Users --> Regular
-    Users --> Admins
-
-    Regular --> Student
-    Regular --> Guest
-
-    Admins --> UnivAdmin
-    Admins --> GlobalAdmin
-
-    Student --> Features
-    Guest --> Features
-    UnivAdmin --> Features
-    GlobalAdmin --> Features
-
-    Features --> Map
-    Features --> Dining
-    Features --> Events
+    Guest --> Map
+    Guest --> Dining
+    Guest --> Events
+    
+    Student --> Map
+    Student --> Dining
+    Student --> Events
+    
+    UnivAdmin --> Map
+    UnivAdmin --> Dining
+    UnivAdmin --> Events
+    UnivAdmin --> AdminPanel
+    
+    GlobalAdmin --> Map
+    GlobalAdmin --> Dining
+    GlobalAdmin --> Events
+    GlobalAdmin --> AdminPanel
 ```
+
+| Role | Map | Search Buildings | Dining | Events | Manage Own Univ | Manage All |
+|------|-----|----------------|--------|--------|--------------|----------|
+| Guest | Yes | Yes | No | No | No | No |
+| Student | Yes | Yes | Yes | Yes | No | No |
+| University Admin | Yes | Yes | Yes | Yes | Yes | No |
+| Global Admin | Yes | Yes | Yes | Yes | Yes | Yes |
+
+---
+
+## Key Files Reference
+
+| Layer | File | Purpose |
+|-------|------|---------|
+| **Frontend** | `WebDev/src/main.tsx` | React entry point, boots with AuthProvider |
+| **Frontend** | `WebDev/src/App.tsx` | Route definitions, all pages |
+| **Frontend** | `WebDev/src/api/client.ts` | Centralized fetch wrapper |
+| **Frontend** | `WebDev/src/common/AuthContext.tsx` | Global auth state |
+| **Frontend** | `WebDev/src/map/3d/MapView3D.tsx` | Main 3D map component |
+| **Frontend** | `WebDev/src/map/3d/CampusScene.tsx` | Three.js canvas setup |
+| **Frontend** | `WebDev/src/map/3d/pathfinder.ts` | Custom pathfinding |
+| **Backend** | `Backend/src/index.ts` | Express server entry |
+| **Backend** | `Backend/src/routes/auth.ts` | Login, signup, JWT |
+| **Backend** | `Backend/src/middleware/auth.ts` | JWT verification |
+| **Backend** | `Backend/src/config/database.ts` | PostgreSQL connection |
+| **Database** | `Database/schema.sql` | SQL schema |
 
 ---
 
 ## Summary
 
-**U-Nav has three main parts:**
+**U-Nav has three layers:**
 
-1. **Website (Frontend)** - What students see and interact with
-2. **Server (Backend)** - Handles all the logic and processing
-3. **Database (Data Storage)** - Stores all the information
+1. **React Frontend** - What users see and interact with
+2. **Express Backend** - Processes requests, handles auth
+3. **PostgreSQL Database** - Stores all data
 
-**Key Features:**
+**Core Features:**
 
-- 🗺️ **Maps** - 2D and 3D campus maps
-- 🍔 **Dining** - Find restaurants, cafes, and food spots
-- 📅 **Events** - Stay updated on campus events
-- 👥 **Admin** - Manage all content easily
-- 🔒 **Security** - Safe and secure authentication
+- 3D Campus Map (React Three Fiber)
+- Custom pathfinding algorithm
+- Dining guide with filtering
+- Campus events calendar
+- Admin dashboard
+- JWT authentication
+
+**Built by 1st-year Software Engineering students.**
