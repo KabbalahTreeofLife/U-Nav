@@ -6,10 +6,13 @@ import '../css/About/About.css';
 export const AboutView: React.FC = () => {
     return (
         <div className="about-container">
-            <TopNav title="University Navigate" />
+            <TopNav showLogo={true} />
             <div className="about-content">
                 <div className="about-header">
-                    <h1 className="about-title">U-Nav</h1>
+                    <div className="about-title-section">
+                        <img src="/Unav_Logo.png" alt="U-Nav Logo" className="about-logo" />
+                        <h1 className="about-title">U-Nav</h1>
+                    </div>
                     <p className="about-subtitle">University Navigation System</p>
                     <p className="about-version">Version 1.0.0</p>
                 </div>

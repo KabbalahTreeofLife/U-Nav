@@ -76,7 +76,7 @@ export const DiningView: React.FC = () => {
 
     return (
         <div className="dining-container">
-            <TopNav title="University Navigate" />
+            <TopNav showLogo={true} />
             
             <div className="dining-controls">
                 {isGlobalAdmin && (

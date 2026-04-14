@@ -37,7 +37,7 @@ export const MapView2D: React.FC = () => {
 
     return (
         <div className="map-container">
-            <TopNav title="University Navigate" />
+            <TopNav showLogo={true} />
             
             <div className="map-controls">
                 {isGlobalAdmin && (

@@ -5,9 +5,10 @@ import { useAuth } from './AuthContext';
 interface TopNavProps {
     title?: string;
     showLogout?: boolean;
+    showLogo?: boolean;
 }
 
-export const TopNav: React.FC<TopNavProps> = ({ title = 'U-Nav', showLogout = true }) => {
+export const TopNav: React.FC<TopNavProps> = ({ title = 'U-Nav', showLogout = true, showLogo = false }) => {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
@@ -18,7 +19,14 @@ export const TopNav: React.FC<TopNavProps> = ({ title = 'U-Nav', showLogout = tr
 
     return (
         <nav className="top-nav">
-            <div className="top-nav-title">{title}</div>
+            {showLogo ? (
+                <div className="top-nav-logo-section">
+                    <img src="/Unav_Logo.png" alt="U-Nav Logo" className="top-nav-logo" />
+                    <div className="top-nav-title">U-Nav</div>
+                </div>
+            ) : (
+                <div className="top-nav-title">{title}</div>
+            )}
             {showLogout && (
                 <button className="top-nav-logout" onClick={handleLogout} aria-label="Logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
