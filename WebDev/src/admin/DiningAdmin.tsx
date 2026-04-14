@@ -292,7 +292,7 @@ export const DiningAdmin: React.FC = () => {
               <tr>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Building</th>
+                <th>Location</th>
                 <th>Hours</th>
                 <th>Price</th>
                 <th>Rating</th>
@@ -432,7 +432,7 @@ export const DiningAdmin: React.FC = () => {
 
                 <div className="admin-form-row">
                   <div className="admin-form-group">
-                    <label>Building *</label>
+                    <label>Location *</label>
                     <input
                       type="text"
                       value={formData.building}
