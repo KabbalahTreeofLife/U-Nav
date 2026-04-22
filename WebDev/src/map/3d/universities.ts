@@ -63,7 +63,13 @@ export const getUniversityMap = (universityId: number): UniversityMap | undefine
 };
 
 export const getDefaultMap = (): UniversityMap => {
-    return UNIVERSITY_MAPS[0];
+    return {
+        id: 0,
+        name: 'To Be Added',
+        glbFile: '',
+        config: DEFAULT_MAP_CONFIG,
+        buildings: [],
+    };
 };
 
 export const GUEST_BUILDINGS: Building[] = [
